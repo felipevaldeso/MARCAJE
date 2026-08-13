@@ -238,6 +238,40 @@ function filaAValores(tabla) {
   return tabla.rows.map(r => (r.c || []).map(c => (c ? c.v : null)));
 }
 
+function normalizarFecha(fechaStr) {
+  // Asegura formato DD/MM/YYYY con ceros adelante (ej: 3/8/2026 -> 03/08/2026)
+  if (!fechaStr) return fechaStr;
+  const partes = fechaStr.toString().trim().split('/');
+  if (partes.length !== 3) return fechaStr;
+  const dia = partes[0].padStart(2, '0');
+  const mes = partes[1].padStart(2, '0');
+  const año = partes[2];
+  return `${dia}/${mes}/${año}`;
+}
+
+function valorFechaCelda(v) {
+  // Google Sheets a veces convierte automáticamente el texto de fecha
+  // en un tipo interno "Date(...)" cuando la columna solo contiene fechas.
+  // Esta función detecta ese caso y lo convierte a DD/MM/YYYY normal.
+  if (v === null || v === undefined || v === '') return '';
+  
+  const str = v.toString().trim();
+  
+  if (str.startsWith('Date(')) {
+    const numeros = str.match(/-?\d+/g);
+    if (numeros && numeros.length >= 3) {
+      const año = parseInt(numeros[0]);
+      const mesIndex = parseInt(numeros[1]); // 0-indexado
+      const dia = parseInt(numeros[2]);
+      const diaPad = String(dia).padStart(2, '0');
+      const mesPad = String(mesIndex + 1).padStart(2, '0');
+      return `${diaPad}/${mesPad}/${año}`;
+    }
+  }
+  
+  return normalizarFecha(str);
+}
+
 async function cargarMes() {
   const año = fechaVista.getFullYear();
   const mesIdx = fechaVista.getMonth();
@@ -264,7 +298,7 @@ async function cargarMes() {
     const filas = filaAValores(tablaMarcajes);
     // Columnas: Fecha, Día Semana, Hora Entrada, Hora Salida, Estado Entrada, Estado Salida, Notas
     filas.forEach(fila => {
-      const fecha = (fila[0] || '').toString().trim();
+      const fecha = valorFechaCelda(fila[0]);
       if (!fecha) return;
       const estadoEntrada = (fila[4] || '').toString();
       const estadoSalida = (fila[5] || '').toString();
@@ -292,7 +326,7 @@ async function cargarMes() {
       const accion = (fila[4] || '').toString();
       if (!diaCompleto) return;
 
-      const fecha = diaCompleto.split(' (')[0].trim();
+      const fecha = normalizarFecha(diaCompleto.split(' (')[0].trim());
       diasTrackeados.add(fecha);
 
       if (!datosMarcajes[fecha]) {
