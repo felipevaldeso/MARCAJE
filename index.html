@@ -51,6 +51,9 @@
     padding: 8px 16px; font-weight:600; cursor:pointer; font-size:.85em;
   }
   .refresh-btn:hover { background:#059669; }
+  .refresh-btn.gmail-btn { background:#ea4335; }
+  .refresh-btn.gmail-btn:hover { background:#d33426; }
+  .refresh-btn:disabled { opacity:.6; cursor:not-allowed; }
 
   .estado-banner {
     text-align:center; padding:10px; border-radius:10px; margin-bottom: 16px;
@@ -154,8 +157,9 @@
       <button id="btnNext" onclick="cambiarMes(1)">Siguiente →</button>
     </div>
 
-    <div style="text-align:center; margin-bottom:16px;">
-      <button class="refresh-btn" onclick="cargarMes()">🔄 Actualizar datos</button>
+    <div style="text-align:center; margin-bottom:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button class="refresh-btn" onclick="cargarMes()">🔄 Actualizar vista</button>
+      <button class="refresh-btn gmail-btn" id="btnGmail" onclick="actualizarDesdeGmail()">📧 Buscar en Gmail ahora</button>
     </div>
 
     <div id="estadoBanner" class="estado-banner cargando">Cargando datos desde Google Sheets...</div>
@@ -212,6 +216,7 @@
 
 <script>
 const SHEET_ID = '1YYinKuQsaxtthSRHYe1k9qTObUXWV-NWunG2qFfjtew';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyHmvG3s3xWfAoF6ol53ijtbQnfjJcvklNf9dGh61wEXV0JZlkS0WZxJez7Cbp8kdtz6w/exec';
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 const DIAS_SEMANA = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
 
@@ -303,11 +308,15 @@ async function cargarMes() {
       const estadoEntrada = (fila[4] || '').toString();
       const estadoSalida = (fila[5] || '').toString();
       const notas = (fila[6] || '').toString();
+      const horaEntrada = (fila[2] || '').toString().trim();
+      const horaSalida = (fila[3] || '').toString().trim();
 
       datosMarcajes[fecha] = {
         entrada: estadoEntrada.includes('Registrado'),
         salida: estadoSalida.includes('Registrado'),
-        turno: notas.includes('TURNO')
+        turno: notas.includes('TURNO'),
+        horaEntrada: horaEntrada,
+        horaSalida: horaSalida
       };
       diasTrackeados.add(fecha);
     });
@@ -330,7 +339,7 @@ async function cargarMes() {
       diasTrackeados.add(fecha);
 
       if (!datosMarcajes[fecha]) {
-        datosMarcajes[fecha] = { entrada: false, salida: false, turno: false };
+        datosMarcajes[fecha] = { entrada: false, salida: false, turno: false, horaEntrada: '', horaSalida: '' };
       }
       if (tipoAlerta.includes('TURNO') || accion.includes('TURNO')) {
         datosMarcajes[fecha].turno = true;
@@ -442,9 +451,16 @@ function mostrarDetalle(fecha, info) {
   const fechaObj = new Date(a, m - 1, d);
   const nombreDia = DIAS_SEMANA[fechaObj.getDay()];
 
+  const textoEntrada = info.entrada
+    ? `✓ Registrada${info.horaEntrada ? ' a las ' + info.horaEntrada : ''}`
+    : '❌ Faltante';
+  const textoSalida = info.salida
+    ? `✓ Registrada${info.horaSalida ? ' a las ' + info.horaSalida : ''}`
+    : '❌ Faltante';
+
   document.getElementById('detalleTitulo').textContent = `📅 ${fecha} - ${nombreDia}`;
-  document.getElementById('detalleEntrada').textContent = `Entrada: ${info.entrada ? '✓ Registrada' : '❌ Faltante'}`;
-  document.getElementById('detalleSalida').textContent = `Salida: ${info.salida ? '✓ Registrada' : '❌ Faltante'}`;
+  document.getElementById('detalleEntrada').textContent = `Entrada: ${textoEntrada}`;
+  document.getElementById('detalleSalida').textContent = `Salida: ${textoSalida}`;
   document.getElementById('detalleTurno').textContent = info.turno ? '⭐ Día de turno' : 'Día normal (sin turno)';
 
   panel.style.display = 'block';
@@ -452,6 +468,42 @@ function mostrarDetalle(fecha, info) {
 
 function cerrarDetalle() {
   document.getElementById('detallePanel').style.display = 'none';
+}
+
+async function actualizarDesdeGmail() {
+  if (WEB_APP_URL === 'PEGA_AQUI_TU_URL_DE_WEB_APP' || !WEB_APP_URL) {
+    alert('⚠️ Falta configurar la URL del Web App.\n\nRevisa las instrucciones para publicar el script como Web App y pega la URL en el código (constante WEB_APP_URL).');
+    return;
+  }
+
+  const btn = document.getElementById('btnGmail');
+  const banner = document.getElementById('estadoBanner');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Buscando en Gmail...';
+  banner.className = 'estado-banner cargando';
+  banner.textContent = 'Buscando nuevos correos de marcaje en Gmail... esto puede tardar unos segundos.';
+
+  try {
+    const res = await fetch(`${WEB_APP_URL}?accion=actualizar`);
+    const data = await res.json();
+
+    if (data.success) {
+      banner.className = 'estado-banner ok';
+      banner.textContent = '✓ Búsqueda en Gmail completada. Recargando calendario...';
+      await cargarMes();
+    } else {
+      banner.className = 'estado-banner error';
+      banner.textContent = '⚠️ ' + (data.mensaje || 'Error al actualizar');
+    }
+  } catch (e) {
+    banner.className = 'estado-banner error';
+    banner.textContent = '⚠️ No se pudo conectar con el script. Verifica que el Web App esté publicado correctamente.';
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📧 Buscar en Gmail ahora';
+  }
 }
 
 function cambiarMes(delta) {
