@@ -470,6 +470,45 @@ function cerrarDetalle() {
   document.getElementById('detallePanel').style.display = 'none';
 }
 
+function llamarWebAppJSONP(url) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'jsonpCallback_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const script = document.createElement('script');
+    let finalizado = false;
+
+    function limpiar() {
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[callbackName] = function(data) {
+      finalizado = true;
+      limpiar();
+      resolve(data);
+    };
+
+    script.onerror = function() {
+      if (!finalizado) {
+        finalizado = true;
+        limpiar();
+        reject(new Error('No se pudo cargar el script (revisa que el Web App esté publicado)'));
+      }
+    };
+
+    script.src = `${url}${url.includes('?') ? '&' : '?'}callback=${callbackName}`;
+    document.body.appendChild(script);
+
+    // Timeout de seguridad: la búsqueda en Gmail puede tardar
+    setTimeout(() => {
+      if (!finalizado) {
+        finalizado = true;
+        limpiar();
+        reject(new Error('Tiempo de espera agotado (60s). El script puede seguir corriendo en segundo plano.'));
+      }
+    }, 60000);
+  });
+}
+
 async function actualizarDesdeGmail() {
   if (WEB_APP_URL === 'PEGA_AQUI_TU_URL_DE_WEB_APP' || !WEB_APP_URL) {
     alert('⚠️ Falta configurar la URL del Web App.\n\nRevisa las instrucciones para publicar el script como Web App y pega la URL en el código (constante WEB_APP_URL).');
@@ -485,8 +524,7 @@ async function actualizarDesdeGmail() {
   banner.textContent = 'Buscando nuevos correos de marcaje en Gmail... esto puede tardar unos segundos.';
 
   try {
-    const res = await fetch(`${WEB_APP_URL}?accion=actualizar`);
-    const data = await res.json();
+    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=actualizar`);
 
     if (data.success) {
       banner.className = 'estado-banner ok';
@@ -498,7 +536,7 @@ async function actualizarDesdeGmail() {
     }
   } catch (e) {
     banner.className = 'estado-banner error';
-    banner.textContent = '⚠️ No se pudo conectar con el script. Verifica que el Web App esté publicado correctamente.';
+    banner.textContent = '⚠️ ' + e.message;
     console.error(e);
   } finally {
     btn.disabled = false;
