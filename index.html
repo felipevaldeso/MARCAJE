@@ -2,508 +2,988 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Monitor de Marcaje - CESFAM</title>
 <style>
-  :root {
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    --card-bg: rgba(255, 255, 255, 0.95);
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  }
-
   * { margin:0; padding:0; box-sizing:border-box; }
-  
+  html, body { overflow-x: hidden; width: 100%; }
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--bg-gradient);
-    color: var(--text-main);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
-    padding: 20px;
-    line-height: 1.5;
-  }
-
-  .container { max-width: 1000px; margin: 0 auto; }
-
-  /* Header */
-  .header {
-    background: var(--card-bg);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: var(--shadow);
-    text-align: center;
-    margin-bottom: 24px;
-    border: 1px solid white;
-  }
-  .header h1 { 
-    font-size: 2rem; 
-    font-weight: 800; 
-    background: linear-gradient(to right, #4f46e5, #9333ea);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 8px;
-  }
-  .header p { color: var(--text-muted); font-weight: 500; }
-
-  /* Dashboard Card */
-  .card {
-    background: var(--card-bg);
-    border-radius: 24px;
-    padding: 32px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(10px);
-    border: 1px solid white;
-  }
-
-  /* Navigation */
-  .nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    gap: 12px;
-  }
-  .nav-btn {
-    background: white;
-    border: 1px solid #e2e8f0;
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .nav-btn:hover:not(:disabled) {
-    background: #f1f5f9;
-    border-color: var(--primary);
-    transform: translateY(-1px);
-  }
-  .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .mes-label { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
-
-  /* Action Buttons */
-  .actions {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-  }
-  .btn-action {
-    border: none;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: white;
-  }
-  .btn-refresh { background: var(--primary); }
-  .btn-gmail { background: #ea4335; }
-  .btn-action:hover { opacity: 0.9; transform: scale(1.02); }
-  .btn-action:active { transform: scale(0.98); }
-
-  /* Stats Container */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 16px;
-    margin-bottom: 32px;
-  }
-  .stat-card {
-    background: #f8fafc;
     padding: 16px;
-    border-radius: 16px;
-    text-align: center;
-    border: 1px solid #f1f5f9;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
   }
-  .stat-card .val { font-size: 1.8rem; font-weight: 800; display: block; }
-  .stat-card .lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-  .stat-verde { color: var(--success); }
-  .stat-naranjo { color: var(--warning); }
-  .stat-rojo { color: var(--danger); }
-  .stat-turno { color: var(--primary); }
+  .container { max-width: 900px; margin: 0 auto; width: 100%; }
 
-  /* Calendar */
-  .calendar-header {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 12px;
+  .header {
+    background: white; border-radius: 16px; padding: 24px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.15); text-align: center; margin-bottom: 20px;
   }
-  .calendar-header div {
-    text-align: center;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
+  .header h1 { color:#1f2937; font-size: 1.8em; margin-bottom: 4px; }
+  .header p { color:#6b7280; font-size: .95em; }
+
+  .card {
+    background: white; border-radius: 16px; padding: 24px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.15); margin-bottom: 20px; overflow: hidden;
   }
+  .card h2 { color:#1f2937; font-size:1.2em; margin-bottom:16px; }
+  .card h2 .anio-chip { color:#9ca3af; font-weight:400; font-size:.7em; }
 
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
+  .nav { display:flex; align-items:center; justify-content:space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  .nav button {
+    background:#667eea; color:white; border:none; border-radius:10px;
+    padding: 10px 18px; font-weight:600; cursor:pointer; font-size:.95em; transition: all .2s ease;
   }
+  .nav button:hover { background:#5568d3; transform: translateY(-2px); }
+  .nav button:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+  .nav .mes { font-size:1.4em; font-weight:700; color:#1f2937; text-transform:capitalize; }
 
-  .day-cell {
-    aspect-ratio: 1;
-    background: white;
-    border-radius: 14px;
-    border: 1px solid #f1f5f9;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  .refresh-btn {
+    background:#10b981; color:white; border:none; border-radius:10px;
+    padding: 8px 16px; font-weight:600; cursor:pointer; font-size:.85em;
   }
-  .day-cell:hover:not(.empty) {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-    border-color: var(--primary);
+  .refresh-btn:hover { background:#059669; }
+  .refresh-btn.gmail-btn { background:#ea4335; }
+  .refresh-btn.gmail-btn:hover { background:#d33426; }
+  .refresh-btn:disabled { opacity:.6; cursor:not-allowed; }
+
+  .estado-banner { text-align:center; padding:10px; border-radius:10px; margin-bottom: 16px; font-size:.9em; font-weight:600; }
+  .estado-banner.cargando { background:#eff6ff; color:#1e40af; }
+  .estado-banner.error { background:#fee2e2; color:#991b1b; }
+  .estado-banner.ok { background:#d1fae5; color:#065f46; }
+
+  .stats-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr)); gap:10px; margin-bottom: 20px; }
+  .stat { background:#f9fafb; border-radius:10px; padding:12px; text-align:center; border: 2px solid #e5e7eb; min-width: 0; }
+  .stat .num { font-size:1.6em; font-weight:800; color:#1f2937; }
+  .stat .lbl { font-size:.7em; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
+
+  .semana-header { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:6px; margin-bottom:6px; }
+  .semana-header div { text-align:center; font-weight:700; color:#6b7280; font-size:.75em; text-transform:uppercase; letter-spacing:.5px; padding:6px 0; min-width: 0; }
+
+  .calendario { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:6px; }
+
+  .dia {
+    aspect-ratio: 1; min-width: 0; min-height: 0; border-radius: 10px; border: 2px solid #e5e7eb;
+    padding: 6px 4px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position: relative; cursor:pointer; transition: all .2s ease;
   }
-  .day-cell.empty { background: transparent; border: none; cursor: default; }
-  .day-cell.inactive { background: #f8fafc; opacity: 0.4; }
-  .day-cell.today { border: 2px solid var(--primary); background: #eef2ff; }
+  .dia:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0,0,0,.12); }
+  .dia.vacio { border-color: transparent; cursor:default; }
+  .dia.vacio:hover { transform:none; box-shadow:none; }
+  .dia.no-trackeado { background:#f9fafb; color:#c1c5cc; }
+  .dia.feriado { background:#fef3c7; color:#92400e; border-color:#fde68a; cursor:pointer; }
+  .dia.licencia { background:#cffafe; color:#155e75; border-color:#67e8f9; cursor:pointer; }
+  .dia.hoy { box-shadow: 0 0 0 3px #3b82f6 inset; }
 
-  .day-num { font-weight: 800; font-size: 1rem; }
-  
-  .status-dots { display: flex; gap: 4px; margin-bottom: 4px; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px #e2e8f0; }
-  .dot.ok { background: var(--success); }
-  .dot.err { background: var(--danger); }
+  .dia-numero { font-weight:700; font-size:clamp(.75em,3vw,.95em); margin-bottom:4px; }
+  .tickets { display:flex; gap:3px; }
+  .ticket { width:14px; height:14px; border-radius:50%; border: 1.5px solid rgba(0,0,0,.15); flex-shrink: 0; }
+  .ticket.verde { background:#10b981; }
+  .ticket.rojo { background:#ef4444; }
+  .estrella { position:absolute; top:2px; right:2px; font-size:.8em; }
 
-  .star-icon { position: absolute; top: 4px; right: 4px; font-size: 0.8rem; }
+  .leyenda { margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb; display:grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap:10px; font-size:.85em; color:#374151; }
+  .leyenda-item { display:flex; align-items:center; gap:8px; min-width: 0; }
+  .leyenda-tickets { display:flex; gap:3px; flex-shrink: 0; }
 
-  /* Info Banners */
-  .status-banner {
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: 0.9rem;
-    font-weight: 600;
-    animation: fadeIn 0.3s ease;
+  .detalle-panel { display:none; margin-top: 16px; padding: 16px; border-radius: 10px; background:#f9fafb; border-left: 4px solid #667eea; }
+  .detalle-panel h3 { color:#1f2937; margin-bottom:8px; font-size:1.05em; }
+  .detalle-panel p { color:#4b5563; font-size:.9em; margin-bottom:4px; }
+  .detalle-panel .cerrar { float:right; cursor:pointer; color:#9ca3af; font-weight:700; }
+
+  .form-solicitud { display:flex; flex-direction:column; gap:12px; margin-top: 6px; }
+  .form-fila { display:flex; gap:10px; flex-wrap:wrap; }
+  .form-campo { flex:1; min-width:140px; font-size:.85em; color:#374151; }
+  .form-campo select, .form-campo input {
+    width:100%; padding:9px 10px; border-radius:8px; border:1.5px solid #e5e7eb;
+    margin-top:4px; font-size:.9em; font-family:inherit;
   }
-  .banner-loading { background: #eff6ff; color: #1d4ed8; }
-  .banner-error { background: #fef2f2; color: #b91c1c; }
-  .banner-ok { background: #ecfdf5; color: #047857; }
+  .form-campo select:focus, .form-campo input:focus { outline:none; border-color:#667eea; }
 
-  /* Detail Panel */
-  #detailPanel {
-    display: none;
-    margin-top: 24px;
-    padding: 20px;
-    border-radius: 16px;
-    background: #f1f5f9;
-    border-left: 6px solid var(--primary);
-    position: relative;
-    animation: slideUp 0.3s ease;
-  }
-  .close-panel { position: absolute; top: 12px; right: 16px; cursor: pointer; font-weight: bold; color: var(--text-muted); }
-
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-  @media (max-width: 600px) {
-    body { padding: 10px; }
+  @media (max-width:600px){
+    .dia { min-height: 0; }
+    .ticket { width:11px; height:11px; }
+    .nav .mes { font-size:1.15em; }
     .card { padding: 16px; }
-    .mes-label { font-size: 1.1rem; }
-    .day-num { font-size: 0.9rem; }
-    .dot { width: 8px; height: 8px; }
+  }
+  @media (max-width:360px){
+    .ticket { width:9px; height:9px; }
+    .dia { padding: 4px 2px; }
   }
 </style>
 </head>
 <body>
-
 <div class="container">
-  <header class="header">
+
+  <div class="header">
     <h1>📊 Monitor de Marcaje</h1>
-    <p>CESFAM Quinta Bella · Sincronización en Tiempo Real</p>
-  </header>
+    <p>CESFAM Quinta Bella · Conectado en vivo a Google Sheets</p>
+  </div>
 
-  <main class="card">
-    <!-- Navegación de Meses -->
-    <nav class="nav">
-      <button class="nav-btn" onclick="changeMonth(-1)"><span>⬅</span> Anterior</button>
-      <div class="mes-label" id="mesLabel">Cargando...</div>
-      <button class="nav-btn" onclick="changeMonth(1)">Siguiente <span>➡</span></button>
-    </nav>
-
-    <!-- Acciones -->
-    <div class="actions">
-      <button class="btn-action btn-refresh" onclick="loadData()">🔄 Actualizar Calendario</button>
-      <button class="btn-action btn-gmail" id="btnGmail" onclick="syncWithGmail()">📧 Sincronizar Gmail</button>
+  <div class="card">
+    <div class="nav">
+      <button id="btnPrev" onclick="cambiarMes(-1)">← Anterior</button>
+      <div class="mes" id="mesLabel">Cargando...</div>
+      <button id="btnNext" onclick="cambiarMes(1)">Siguiente →</button>
     </div>
 
-    <!-- Estado -->
-    <div id="statusBanner" class="status-banner banner-loading">Iniciando sistema...</div>
-
-    <!-- Estadísticas -->
-    <div class="stats-grid" id="statsGrid" style="display:none;">
-      <div class="stat-card"><span class="val stat-verde" id="stOk">0</span><span class="lbl">Completos</span></div>
-      <div class="stat-card"><span class="val stat-naranjo" id="stPartial">0</span><span class="lbl">Parciales</span></div>
-      <div class="stat-card"><span class="val stat-rojo" id="stFail">0</span><span class="lbl">Faltantes</span></div>
-      <div class="stat-card"><span class="val stat-turno" id="stTurnos">0</span><span class="lbl">Turnos ⭐</span></div>
+    <div style="text-align:center; margin-bottom:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button class="refresh-btn" onclick="cargarMes()">🔄 Actualizar vista</button>
+      <button class="refresh-btn gmail-btn" id="btnGmail" onclick="actualizarDesdeGmail()">📧 Buscar en Gmail ahora</button>
     </div>
 
-    <!-- Calendario -->
-    <div class="calendar-header">
+    <div id="estadoBanner" class="estado-banner cargando">Cargando datos desde Google Sheets...</div>
+
+    <div class="stats-row" id="statsRow" style="display:none;">
+      <div class="stat"><div class="num" id="statCompleto">0</div><div class="lbl">Completos</div></div>
+      <div class="stat"><div class="num" id="statParcial">0</div><div class="lbl">Parciales</div></div>
+      <div class="stat"><div class="num" id="statFaltante">0</div><div class="lbl">Sin marcaje</div></div>
+      <div class="stat"><div class="num" id="statTurnos">0</div><div class="lbl">⭐ Turnos</div></div>
+    </div>
+
+    <div class="semana-header">
       <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
     </div>
-    <div class="calendar-grid" id="calendarGrid"></div>
+    <div class="calendario" id="calendario"></div>
 
-    <!-- Detalle -->
-    <section id="detailPanel">
-      <span class="close-panel" onclick="closeDetail()">✕</span>
-      <h3 id="detDate" style="margin-bottom:10px;">-</h3>
-      <p id="detIn">Entrada: -</p>
-      <p id="detOut">Salida: -</p>
-      <p id="detNote" style="margin-top:8px; font-weight:600; color:var(--primary);"></p>
-    </section>
-  </main>
+    <div class="leyenda">
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket verde"></div></div><span>Jornada: Entrada + Salida OK</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket rojo"></div></div><span>Solo entrada marcada</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket rojo"></div><div class="ticket verde"></div></div><span>Solo salida marcada</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket rojo"></div><div class="ticket rojo"></div></div><span>Sin marcaje</span></div>
+      <div class="leyenda-item"><span style="font-size:1.1em;">⭐</span><span>Día con turno (toca el día para ver detalle)</span></div>
+      <div class="leyenda-item"><span style="font-size:1.1em;">🎉</span><span>Feriado</span></div>
+      <div class="leyenda-item"><span style="font-size:1.1em;">🩺</span><span>Licencia médica</span></div>
+      <div class="leyenda-item"><div style="width:14px;height:14px;background:#f9fafb;border:2px solid #e5e7eb;border-radius:3px;flex-shrink:0;"></div><span>No aplicaba marcaje</span></div>
+    </div>
+
+    <div class="detalle-panel" id="detallePanel">
+      <span class="cerrar" onclick="cerrarDetalle()">✕</span>
+      <h3 id="detalleTitulo"></h3>
+      <p id="detalleEntrada"></p>
+      <p id="detalleSalida"></p>
+      <p id="detalleTurno"></p>
+      <div id="bloqueCorregir" style="margin-top:12px; display:none;">
+        <button type="button" class="refresh-btn" style="background:#f59e0b;" onclick="mostrarFormularioCorregir()">✏️ Corregir este día</button>
+        <div id="formCorregirWrap" style="display:none; margin-top:10px;">
+          <div class="form-fila">
+            <label class="form-campo">Corregir
+              <select id="corHoraTipo">
+                <option value="entrada">Hora Entrada</option>
+                <option value="salida">Hora Salida</option>
+              </select>
+            </label>
+            <label class="form-campo">Hora (HH:MM)
+              <input type="time" id="corHoraValor">
+            </label>
+          </div>
+          <button type="button" class="refresh-btn" style="background:#f59e0b; margin-top:8px;" onclick="enviarCorreccionMarcaje()" id="btnCorregir">💾 Guardar corrección</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Saldos y Solicitudes <span class="anio-chip" id="saldosAnio"></span></h2>
+    <div class="stats-row" style="grid-template-columns: repeat(2,1fr);">
+      <div class="stat"><div class="num" id="saldoAdminNum">–</div><div class="lbl">Días administrativos restantes</div></div>
+      <div class="stat"><div class="num" id="saldoVacNum">–</div><div class="lbl">Vacaciones disponibles</div></div>
+    </div>
+    <div id="saldosBanner" class="estado-banner" style="display:none; margin-top:16px;"></div>
+    <form class="form-solicitud" id="formSolicitud" onsubmit="return enviarSolicitud(event)">
+      <div class="form-fila">
+        <label class="form-campo">Tipo
+          <select id="solTipo" onchange="actualizarCamposSolicitud()">
+            <option value="Administrativo">Día administrativo</option>
+            <option value="Vacaciones">Vacaciones</option>
+          </select>
+        </label>
+        <label class="form-campo" id="labelFraccion">Fracción
+          <select id="solFraccion">
+            <option value="Día completo">Día completo</option>
+            <option value="Medio día (Mañana)">Medio día (Mañana)</option>
+            <option value="Medio día (Tarde)">Medio día (Tarde)</option>
+          </select>
+        </label>
+      </div>
+      <div class="form-fila">
+        <label class="form-campo">Fecha inicio<input type="date" id="solFechaInicio" required></label>
+        <label class="form-campo">Fecha fin<input type="date" id="solFechaFin"></label>
+      </div>
+      <label class="form-campo">Notas (opcional)<input type="text" id="solNotas" placeholder="Ej: control médico"></label>
+      <button type="submit" class="refresh-btn" id="btnSolicitar" style="align-self:flex-start;">📩 Registrar solicitud</button>
+    </form>
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid #e5e7eb;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <strong style="color:#1f2937; font-size:.9em;">Solicitudes registradas</strong>
+        <button type="button" class="refresh-btn" style="padding:4px 10px; font-size:.75em;" onclick="cargarListaSolicitudes()">🔄</button>
+      </div>
+      <div id="listaSolicitudes" style="display:flex; flex-direction:column; gap:6px; font-size:.85em;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🩺 Licencias Médicas</h2>
+    <div id="licenciaBanner" class="estado-banner" style="display:none; margin-bottom:16px;"></div>
+    <form class="form-solicitud" id="formLicencia" onsubmit="return enviarLicencia(event)">
+      <div class="form-fila">
+        <label class="form-campo">Fecha inicio<input type="date" id="licFechaInicio" required></label>
+        <label class="form-campo">Fecha fin<input type="date" id="licFechaFin"></label>
+      </div>
+      <button type="submit" class="refresh-btn" id="btnLicencia" style="align-self:flex-start; background:#0891b2;">🩺 Registrar licencia</button>
+    </form>
+  </div>
+
 </div>
 
 <script>
-/** CONFIGURACIÓN **/
-const SHEET_ID = '1YYinKuQsaxtthSRHYe1k9qTObUXWV-NWunG2qFfjtew';
-const APP_URL = 'https://script.google.com/macros/s/AKfycbyHmvG3s3xWfAoF6ol53ijtbQnfjJcvklNf9dGh61wEXV0JZlkS0WZxJez7Cbp8kdtz6w/exec';
-const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const WEB_APP_URL = 'PEGA_AQUI_LA_URL_DE_TU_WEB_APP';
+const SHEET_URL_ID = 'PEGA_AQUI_EL_ID_DE_TU_NUEVA_PLANILLA_MONITOR';
 
-let currentViewDate = new Date();
-let registry = {}; 
-let trackedDays = new Set();
+// Tu planilla de turnos (Finanzas Médicas) — reemplaza a KIKA
+const SHEET_TURNOS_ID = '1K7IVI32_7qyD2BZ8mzUrtNoDZ3V4Zw2Vt7wsLcoMUnI';
+const HOJA_TURNOS = 'Registros';
+// Columnas: A=ID(0) B=Fecha(1) C=Día(2) D=Centro(3) E=Horas(4) F=Tipo(5) G=Mes(6)
 
-/** LÓGICA DE DATOS **/
+const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const DIAS_SEMANA = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
 
-async function fetchSheetData(sheetName) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-  try {
-    const res = await fetch(url);
-    const text = await res.text();
-    const json = JSON.parse(text.substring(text.indexOf('(') + 1, text.lastIndexOf(')')));
-    if (json.status === 'error') return null;
-    return json.table.rows.map(row => row.c.map(cell => cell ? (cell.v || '') : ''));
-  } catch (e) {
-    return null;
+let fechaVista = new Date();
+let datosMarcajes = {};
+let diasTrackeados = new Set();
+let feriadosMap = new Map();
+let turnoDatesSet = new Set(); // "DD/MM/YYYY" -> respaldo/futuro, desde Finanzas Médicas
+let turnoInfoMap = new Map();  // "DD/MM/YYYY" -> {centro, horas, tipo}, desde Finanzas Médicas
+let licenciasSet = new Set();
+
+async function fetchSheetTable(sheetId, sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('No se pudo conectar a la planilla');
+  const text = await res.text();
+  const jsonStr = text.substring(text.indexOf('(') + 1, text.lastIndexOf(')'));
+  const data = JSON.parse(jsonStr);
+  if (data.status === 'error') {
+    const msg = (data.errors && data.errors[0] && data.errors[0].detailed_message) || 'Hoja no encontrada';
+    throw new Error(msg);
   }
+  return data.table;
 }
 
-// Función robusta para parsear fechas de Google Sheets
-function parseGoogleDate(val) {
-  if (!val) return null;
-  let d, m, a;
-  
-  if (val.toString().includes('Date(')) {
-    const parts = val.match(/\d+/g);
-    a = parts[0];
-    m = parseInt(parts[1]) + 1;
-    d = parts[2];
-  } else {
-    const parts = val.toString().split('/');
-    if (parts.length !== 3) return null;
-    [d, m, a] = parts;
-  }
-  return `${d.toString().padStart(2,'0')}/${m.toString().padStart(2,'0')}/${a}`;
+function filaAValores(tabla) {
+  if (!tabla || !tabla.rows) return [];
+  return tabla.rows.map(r => (r.c || []).map(c => (c ? c.v : null)));
 }
 
-async function loadData() {
-  const year = currentViewDate.getFullYear();
-  const monthIdx = currentViewDate.getMonth();
-  const monthName = MONTHS[monthIdx];
-  
-  // UI Reset
-  document.getElementById('mesLabel').textContent = `${monthName} ${year}`;
-  const banner = document.getElementById('statusBanner');
-  banner.className = 'status-banner banner-loading';
-  banner.textContent = `Consultando datos de ${monthName}...`;
-  document.getElementById('calendarGrid').innerHTML = '';
-  document.getElementById('statsGrid').style.display = 'none';
-  closeDetail();
-
-  registry = {};
-  trackedDays.clear();
-
-  // 1. Cargar Marcajes
-  const marcajesRows = await fetchSheetData(`Marcajes-${monthName}-${year}`);
-  if (marcajesRows) {
-    marcajesRows.forEach(row => {
-      const fecha = parseGoogleDate(row[0]);
-      if (!fecha) return;
-      
-      registry[fecha] = {
-        in: row[4]?.toString().includes('Registrado'),
-        out: row[5]?.toString().includes('Registrado'),
-        timeIn: row[2],
-        timeOut: row[3],
-        isTurno: row[6]?.toString().toUpperCase().includes('TURNO')
-      };
-      trackedDays.add(fecha);
-    });
-  }
-
-  // 2. Cargar Alertas (para complementar turnos)
-  const alertaRows = await fetchSheetData(`Alertas-${monthName}-${year}`);
-  if (alertaRows) {
-    alertaRows.forEach(row => {
-      const rawFecha = row[2]?.toString().split(' ')[0];
-      const fecha = parseGoogleDate(rawFecha);
-      if (!fecha) return;
-      
-      trackedDays.add(fecha);
-      if (!registry[fecha]) registry[fecha] = { in: false, out: false, isTurno: false };
-      if (row[1]?.toString().includes('TURNO') || row[4]?.toString().includes('TURNO')) {
-        registry[fecha].isTurno = true;
-      }
-    });
-  }
-
-  if (trackedDays.size === 0) {
-    banner.className = 'status-banner banner-error';
-    banner.textContent = `⚠️ No se encontraron registros para este periodo.`;
-  } else {
-    banner.className = 'status-banner banner-ok';
-    banner.textContent = `✅ Datos actualizados a las ${new Date().toLocaleTimeString()}`;
-  }
-
-  renderCalendar(year, monthIdx);
-  updateStats();
+function normalizarFecha(fechaStr) {
+  if (!fechaStr) return fechaStr;
+  const partes = fechaStr.toString().trim().split('/');
+  if (partes.length !== 3) return fechaStr;
+  const dia = partes[0].padStart(2, '0');
+  const mes = partes[1].padStart(2, '0');
+  const año = partes[2];
+  return `${dia}/${mes}/${año}`;
 }
 
-function renderCalendar(year, monthIdx) {
-  const grid = document.getElementById('calendarGrid');
-  const firstDay = new Date(year, monthIdx, 1).getDay();
-  const offset = firstDay === 0 ? 6 : firstDay - 1;
-  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
-  const today = new Date();
-
-  // Celdas vacías mes anterior
-  for (let i = 0; i < offset; i++) {
-    const div = document.createElement('div');
-    div.className = 'day-cell empty';
-    grid.appendChild(div);
-  }
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${d.toString().padStart(2,'0')}/${(monthIdx+1).toString().padStart(2,'0')}/${year}`;
-    const info = registry[dateStr];
-    const isTracked = trackedDays.has(dateStr);
-    
-    const cell = document.createElement('div');
-    cell.className = 'day-cell';
-    if (isTracked) {
-      if (today.getDate() === d && today.getMonth() === monthIdx && today.getFullYear() === year) {
-        cell.classList.add('today');
-      }
-      
-      cell.innerHTML = `
-        <span class="day-num">${d}</span>
-        <div class="status-dots">
-          <div class="dot ${info.in ? 'ok' : 'err'}"></div>
-          <div class="dot ${info.out ? 'ok' : 'err'}"></div>
-        </div>
-        ${info.isTurno ? '<span class="star-icon">⭐</span>' : ''}
-      `;
-      cell.onclick = () => showDetail(dateStr, info);
-    } else {
-      cell.classList.add('inactive');
-      cell.innerHTML = `<span class="day-num">${d}</span>`;
+function valorFechaCelda(v) {
+  if (v === null || v === undefined || v === '') return '';
+  const str = v.toString().trim();
+  if (str.startsWith('Date(')) {
+    const numeros = str.match(/-?\d+/g);
+    if (numeros && numeros.length >= 3) {
+      const año = parseInt(numeros[0]);
+      const mesIndex = parseInt(numeros[1]);
+      const dia = parseInt(numeros[2]);
+      const diaPad = String(dia).padStart(2, '0');
+      const mesPad = String(mesIndex + 1).padStart(2, '0');
+      return `${diaPad}/${mesPad}/${año}`;
     }
-    grid.appendChild(cell);
+  }
+  return normalizarFecha(str);
+}
+
+function valorFechaISO(v) {
+  // Para la columna B de Finanzas Médicas, que suele venir en AAAA-MM-DD como texto,
+  // o como objeto Date de Sheets (mismo caso "Date(...)" que valorFechaCelda).
+  if (v === null || v === undefined || v === '') return '';
+  const str = v.toString().trim();
+  if (str.startsWith('Date(')) return valorFechaCelda(v);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const [a, m, d] = str.split('-');
+    return `${d}/${m}/${a}`;
+  }
+  return normalizarFecha(str);
+}
+
+async function cargarFeriados() {
+  feriadosMap = new Map();
+  try {
+    const tabla = await fetchSheetTable(SHEET_URL_ID, 'Configuración');
+    const filas = filaAValores(tabla);
+    // Los feriados empiezan en la fila 9 (índice 8): columna A=fecha, B=descripción
+    for (let i = 8; i < filas.length; i++) {
+      const fecha = valorFechaCelda(filas[i][0]);
+      const desc = (filas[i][1] || '').toString();
+      if (fecha) feriadosMap.set(fecha, desc);
+    }
+  } catch (e) {
+    console.log('Sin hoja de Configuración todavía:', e.message);
   }
 }
 
-function updateStats() {
-  let ok = 0, partial = 0, fail = 0, turnos = 0;
-  trackedDays.forEach(date => {
-    const d = registry[date];
-    if (d.in && d.out) ok++;
-    else if (d.in || d.out) partial++;
-    else fail++;
-    if (d.isTurno) turnos++;
+/**
+ * Lee TODA tu planilla de Finanzas Médicas (client-side, vía gviz).
+ * Requiere que "Finanzas Médicas" esté compartida como "Cualquiera con el
+ * enlace - Lector", igual que tu planilla Monitor.
+ */
+async function cargarTurnosFinanzasMedicas() {
+  turnoDatesSet = new Set();
+  turnoInfoMap = new Map();
+  try {
+    const tabla = await fetchSheetTable(SHEET_TURNOS_ID, HOJA_TURNOS);
+    const filas = filaAValores(tabla);
+    filas.forEach(fila => {
+      const fecha = valorFechaISO(fila[1]);
+      if (!fecha) return;
+      const centro = (fila[3] || '').toString();
+      const horas = parseFloat(fila[4]) || 0;
+      const tipo = (fila[5] || '').toString();
+      turnoDatesSet.add(fecha);
+      turnoInfoMap.set(fecha, { centro, horas, tipo });
+    });
+  } catch (e) {
+    console.log('No se pudo cargar Finanzas Médicas:', e.message);
+  }
+}
+
+async function cargarLicencias() {
+  licenciasSet = new Set();
+  try {
+    const tabla = await fetchSheetTable(SHEET_URL_ID, 'Licencias');
+    if (!tabla.cols || !tabla.cols[1] || tabla.cols[1].label !== 'Fecha Inicio') {
+      throw new Error('La hoja "Licencias" todavía no existe.');
+    }
+    const filas = filaAValores(tabla);
+    filas.forEach(fila => {
+      const fechaInicio = valorFechaCelda(fila[1]);
+      if (!fechaInicio) return;
+      const fechaFin = valorFechaCelda(fila[2]) || fechaInicio;
+      const [d1, m1, a1] = fechaInicio.split('/').map(Number);
+      const [d2, m2, a2] = fechaFin.split('/').map(Number);
+      let actual = new Date(a1, m1 - 1, d1);
+      const finDate = new Date(a2, m2 - 1, d2);
+      while (actual <= finDate) {
+        const fechaStr = `${String(actual.getDate()).padStart(2,'0')}/${String(actual.getMonth()+1).padStart(2,'0')}/${actual.getFullYear()}`;
+        licenciasSet.add(fechaStr);
+        actual.setDate(actual.getDate() + 1);
+      }
+    });
+  } catch (e) {
+    console.log('Sin hoja de Licencias todavía:', e.message);
+  }
+}
+
+let cargaMesToken = 0;
+
+async function cargarMes() {
+  const miToken = ++cargaMesToken;
+  const año = fechaVista.getFullYear();
+  const mesIdx = fechaVista.getMonth();
+  const nombreMes = MESES[mesIdx];
+
+  document.getElementById('mesLabel').textContent = `${nombreMes} ${año}`;
+  const banner = document.getElementById('estadoBanner');
+  banner.className = 'estado-banner cargando';
+  banner.textContent = 'Cargando datos desde Google Sheets...';
+  document.getElementById('statsRow').style.display = 'none';
+  document.getElementById('calendario').innerHTML = '';
+
+  const datosLocal = {};
+  const trackeadosLocal = new Set();
+
+  const nombreHojaMarcajes = `Marcajes-${nombreMes}-${año}`;
+  const nombreHojaAlertas = `Alertas-${nombreMes}-${año}`;
+
+  let huboMarcajes = false;
+  let huboAlertas = false;
+
+  await cargarFeriados();
+  if (miToken !== cargaMesToken) return;
+
+  await cargarLicencias();
+  if (miToken !== cargaMesToken) return;
+
+  await cargarTurnosFinanzasMedicas();
+  if (miToken !== cargaMesToken) return;
+
+  try {
+    const tablaMarcajes = await fetchSheetTable(SHEET_URL_ID, nombreHojaMarcajes);
+    if (miToken !== cargaMesToken) return;
+    const filas = filaAValores(tablaMarcajes);
+
+    const primeraFechaValida = filas.map(f => valorFechaCelda(f[0])).find(f => !!f);
+    if (primeraFechaValida) {
+      const partes = primeraFechaValida.split('/');
+      const mesDevuelto = parseInt(partes[1], 10) - 1;
+      const anioDevuelto = parseInt(partes[2], 10);
+      if (mesDevuelto !== mesIdx || anioDevuelto !== año) {
+        throw new Error(`Google devolvió datos de otra hoja — la hoja pedida no existe todavía.`);
+      }
+    }
+
+    // Columnas: Fecha, Día Semana, Hora Entrada, Hora Salida, Tipo Turno, Horas Turno, Notas
+    filas.forEach(fila => {
+      const fecha = valorFechaCelda(fila[0]);
+      if (!fecha) return;
+
+      const horaEntrada = (fila[2] || '').toString().trim();
+      const horaSalida = (fila[3] || '').toString().trim();
+      const tipoTurno = (fila[4] || '').toString().trim();
+      const horasTurno = fila[5];
+
+      datosLocal[fecha] = {
+        entrada: !!horaEntrada, salida: !!horaSalida,
+        turno: !!tipoTurno, tipoTurno: tipoTurno, horasTurno: horasTurno,
+        horaEntrada: horaEntrada, horaSalida: horaSalida
+      };
+      trackeadosLocal.add(fecha);
+    });
+    huboMarcajes = true;
+  } catch (e) {
+    console.log('Sin hoja de Marcajes para este mes:', e.message);
+  }
+  if (miToken !== cargaMesToken) return;
+
+  try {
+    const tablaAlertas = await fetchSheetTable(SHEET_URL_ID, nombreHojaAlertas);
+    if (miToken !== cargaMesToken) return;
+    const filas = filaAValores(tablaAlertas);
+
+    const primeraAlertaValida = filas.map(f => normalizarFecha((f[2] || '').toString().split(' (')[0].trim())).find(f => f && f.includes('/'));
+    if (primeraAlertaValida) {
+      const partes = primeraAlertaValida.split('/');
+      const mesDevuelto = parseInt(partes[1], 10) - 1;
+      const anioDevuelto = parseInt(partes[2], 10);
+      if (mesDevuelto !== mesIdx || anioDevuelto !== año) {
+        throw new Error(`Google devolvió Alertas de otro mes — la hoja pedida no existe todavía.`);
+      }
+    }
+
+    filas.forEach(fila => {
+      const tipoAlerta = (fila[1] || '').toString();
+      const diaCompleto = (fila[2] || '').toString();
+      const accion = (fila[4] || '').toString();
+      if (!diaCompleto) return;
+
+      const fecha = normalizarFecha(diaCompleto.split(' (')[0].trim());
+      trackeadosLocal.add(fecha);
+
+      if (!datosLocal[fecha]) {
+        datosLocal[fecha] = { entrada: false, salida: false, turno: false, tipoTurno: '', horasTurno: '', horaEntrada: '', horaSalida: '' };
+      }
+      if (tipoAlerta.includes('TURNO') || accion.includes('TURNO')) {
+        datosLocal[fecha].turno = true;
+      }
+    });
+    huboAlertas = true;
+  } catch (e) {
+    console.log('Sin hoja de Alertas para este mes:', e.message);
+  }
+  if (miToken !== cargaMesToken) return;
+
+  // Turnos planificados (Finanzas Médicas) del mes en vista, incluye días futuros
+  turnoDatesSet.forEach(fecha => {
+    const [dK, mK, aK] = fecha.split('/').map(Number);
+    if (aK !== año || (mK - 1) !== mesIdx) return;
+    if (!datosLocal[fecha]) {
+      const info = turnoInfoMap.get(fecha);
+      datosLocal[fecha] = {
+        entrada: false, salida: false, turno: true,
+        tipoTurno: info ? `${info.centro} (${info.tipo})` : '', horasTurno: info ? info.horas : '',
+        horaEntrada: '', horaSalida: ''
+      };
+    } else {
+      datosLocal[fecha].turno = true;
+    }
+    trackeadosLocal.add(fecha);
   });
 
-  document.getElementById('stOk').textContent = ok;
-  document.getElementById('stPartial').textContent = partial;
-  document.getElementById('stFail').textContent = fail;
-  document.getElementById('stTurnos').textContent = turnos;
-  document.getElementById('statsGrid').style.display = 'grid';
+  if (miToken !== cargaMesToken) return;
+
+  datosMarcajes = datosLocal;
+  diasTrackeados = trackeadosLocal;
+
+  if (!huboMarcajes && !huboAlertas) {
+    banner.className = 'estado-banner error';
+    banner.textContent = `⚠️ No hay datos para ${nombreMes} ${año}. Aún no se ha ejecutado el script en ese mes.`;
+  } else {
+    banner.className = 'estado-banner ok';
+    const ahora = new Date();
+    banner.textContent = `✓ Datos actualizados · ${ahora.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'})}`;
+  }
+
+  renderizarCalendario(año, mesIdx);
+  renderizarStats();
+  cargarSaldos(año);
+  cargarListaSolicitudes();
 }
 
-function showDetail(date, info) {
-  const panel = document.getElementById('detailPanel');
-  document.getElementById('detDate').textContent = `📅 Detalle: ${date}`;
-  document.getElementById('detIn').textContent = `Entrada: ${info.in ? '✅ ' + (info.timeIn || 'Registrada') : '❌ Pendiente'}`;
-  document.getElementById('detOut').textContent = `Salida: ${info.out ? '✅ ' + (info.timeOut || 'Registrada') : '❌ Pendiente'}`;
-  document.getElementById('detNote').textContent = info.isTurno ? '🌟 Jornada con Turno Especial' : '';
-  panel.style.display = 'block';
-  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
+function renderizarCalendario(año, mesIdx) {
+  const cal = document.getElementById('calendario');
+  cal.innerHTML = '';
 
-function closeDetail() {
-  document.getElementById('detailPanel').style.display = 'none';
-}
+  const primerDiaSemana = new Date(año, mesIdx, 1).getDay();
+  const offset = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1;
+  const diasEnMes = new Date(año, mesIdx + 1, 0).getDate();
 
-function changeMonth(delta) {
-  currentViewDate.setMonth(currentViewDate.getMonth() + delta);
-  loadData();
-}
+  const hoy = new Date();
+  const esMesActual = hoy.getFullYear() === año && hoy.getMonth() === mesIdx;
 
-/** INTEGRACIÓN CON WEB APP (GMAIL) **/
+  for (let i = 0; i < offset; i++) {
+    const vacio = document.createElement('div');
+    vacio.className = 'dia vacio';
+    cal.appendChild(vacio);
+  }
 
-async function syncWithGmail() {
-  const btn = document.getElementById('btnGmail');
-  const banner = document.getElementById('statusBanner');
-  
-  btn.disabled = true;
-  btn.textContent = '⏳ Sincronizando...';
-  banner.className = 'status-banner banner-loading';
-  banner.textContent = 'Buscando marcajes nuevos en tu Gmail...';
+  for (let dia = 1; dia <= diasEnMes; dia++) {
+    const fechaStr = `${String(dia).padStart(2,'0')}/${String(mesIdx+1).padStart(2,'0')}/${año}`;
+    const div = document.createElement('div');
+    div.className = 'dia';
 
-  const callbackName = 'jsonp_' + Math.round(Math.random() * 100000);
-  
-  const script = document.createElement('script');
-  script.src = `${APP_URL}?accion=actualizar&callback=${callbackName}`;
-  
-  window[callbackName] = (data) => {
-    delete window[callbackName];
-    document.body.removeChild(script);
-    if (data.success) {
-      loadData();
+    if (esMesActual && dia === hoy.getDate()) div.classList.add('hoy');
+
+    const info = datosMarcajes[fechaStr];
+    const trackeado = diasTrackeados.has(fechaStr);
+    const fechaDelDia = new Date(año, mesIdx, dia);
+    const esFuturo = fechaDelDia > hoy && !(esMesActual && dia === hoy.getDate());
+
+    const numero = document.createElement('div');
+    numero.className = 'dia-numero';
+    numero.textContent = dia;
+    div.appendChild(numero);
+
+    const esLicencia = licenciasSet.has(fechaStr);
+
+    if (esLicencia) {
+      div.classList.add('licencia');
+      const marca = document.createElement('div');
+      marca.className = 'estrella'; marca.textContent = '🩺';
+      div.appendChild(marca);
+      div.onclick = () => mostrarDetalleLicencia(fechaStr);
+    } else if (trackeado && !esFuturo) {
+      const tickets = document.createElement('div');
+      tickets.className = 'tickets';
+      const t1 = document.createElement('div');
+      t1.className = 'ticket ' + (info.entrada ? 'verde' : 'rojo');
+      const t2 = document.createElement('div');
+      t2.className = 'ticket ' + (info.salida ? 'verde' : 'rojo');
+      tickets.appendChild(t1); tickets.appendChild(t2);
+      div.appendChild(tickets);
+
+      if (info.turno) {
+        const estrella = document.createElement('div');
+        estrella.className = 'estrella'; estrella.textContent = '⭐';
+        div.appendChild(estrella);
+      }
+      div.onclick = () => mostrarDetalle(fechaStr, info);
+    } else if (trackeado && esFuturo) {
+      if (info.turno) {
+        const estrella = document.createElement('div');
+        estrella.className = 'estrella'; estrella.textContent = '⭐';
+        div.appendChild(estrella);
+      }
+      div.classList.add('no-trackeado');
+      div.onclick = () => mostrarDetalleFuturo(fechaStr, info);
     } else {
-      banner.className = 'status-banner banner-error';
-      banner.textContent = 'Error: ' + data.mensaje;
-      btn.disabled = false;
-      btn.textContent = '📧 Sincronizar Gmail';
+      div.classList.add('no-trackeado');
+      const descFeriado = feriadosMap.get(fechaStr);
+      if (descFeriado) {
+        div.classList.add('feriado');
+        const marca = document.createElement('div');
+        marca.className = 'estrella'; marca.textContent = '🎉';
+        div.appendChild(marca);
+        div.onclick = () => mostrarDetalleFeriado(fechaStr, descFeriado);
+      }
     }
-  };
 
-  script.onerror = () => {
-    banner.className = 'status-banner banner-error';
-    banner.textContent = 'Error crítico de conexión con el servidor.';
-    btn.disabled = false;
-  };
-
-  document.body.appendChild(script);
+    cal.appendChild(div);
+  }
 }
 
-// Iniciar
-loadData();
-</script>
+function renderizarStats() {
+  let completo = 0, parcial = 0, faltante = 0, turnos = 0;
+  const hoy = new Date();
 
+  diasTrackeados.forEach(fecha => {
+    const info = datosMarcajes[fecha];
+    if (!info) return;
+    if (licenciasSet.has(fecha)) return;
+
+    const [d, m, a] = fecha.split('/').map(Number);
+    const fechaDelDia = new Date(a, m - 1, d);
+    const esFuturo = fechaDelDia > hoy && !(a === hoy.getFullYear() && (m - 1) === hoy.getMonth() && d === hoy.getDate());
+    if (esFuturo) {
+      if (info.turno) turnos++;
+      return;
+    }
+
+    if (info.entrada && info.salida) completo++;
+    else if (info.entrada || info.salida) parcial++;
+    else faltante++;
+    if (info.turno) turnos++;
+  });
+
+  document.getElementById('statCompleto').textContent = completo;
+  document.getElementById('statParcial').textContent = parcial;
+  document.getElementById('statFaltante').textContent = faltante;
+  document.getElementById('statTurnos').textContent = turnos;
+  document.getElementById('statsRow').style.display = 'grid';
+}
+
+let fechaSeleccionadaDetalle = null;
+
+function mostrarDetalle(fecha, info) {
+  fechaSeleccionadaDetalle = fecha;
+  const panel = document.getElementById('detallePanel');
+  const [d, m, a] = fecha.split('/');
+  const fechaObj = new Date(a, m - 1, d);
+  const nombreDia = DIAS_SEMANA[fechaObj.getDay()];
+
+  const textoEntrada = info.entrada ? `✓ Registrada${info.horaEntrada ? ' a las ' + info.horaEntrada : ''}` : '❌ Faltante';
+  const textoSalida = info.salida ? `✓ Registrada${info.horaSalida ? ' a las ' + info.horaSalida : ''}` : '❌ Faltante';
+
+  document.getElementById('detalleTitulo').textContent = `📅 ${fecha} - ${nombreDia}`;
+  document.getElementById('detalleEntrada').textContent = `Entrada: ${textoEntrada}`;
+  document.getElementById('detalleSalida').textContent = `Salida: ${textoSalida}`;
+
+  let textoTurno;
+  if (info.tipoTurno) {
+    textoTurno = `⭐ ${info.tipoTurno}${info.horasTurno ? ' · ' + info.horasTurno + 'h' : ''}`;
+  } else if (info.turno) {
+    textoTurno = '⭐ Turno registrado en Finanzas Médicas (sin correo de marcaje detectado ese día)';
+  } else {
+    textoTurno = 'Sin turno ese día';
+  }
+  document.getElementById('detalleTurno').textContent = textoTurno;
+
+  document.getElementById('bloqueCorregir').style.display = 'block';
+  document.getElementById('formCorregirWrap').style.display = 'none';
+  panel.style.display = 'block';
+}
+
+function mostrarFormularioCorregir() {
+  document.getElementById('formCorregirWrap').style.display = 'block';
+}
+
+async function enviarCorreccionMarcaje() {
+  if (!fechaSeleccionadaDetalle) return;
+  const tipo = document.getElementById('corHoraTipo').value;
+  const hora = document.getElementById('corHoraValor').value;
+  if (!hora) { alert('Ingresa una hora.'); return; }
+
+  const btn = document.getElementById('btnCorregir');
+  btn.disabled = true;
+  btn.textContent = '⏳ Guardando...';
+
+  try {
+    const params = new URLSearchParams({ accion: 'corregirMarcaje', fecha: fechaSeleccionadaDetalle, tipo, hora });
+    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?${params.toString()}`);
+    if (data.success) {
+      alert('✓ ' + data.mensaje);
+      document.getElementById('formCorregirWrap').style.display = 'none';
+      await cargarMes();
+    } else {
+      alert('⚠️ ' + (data.mensaje || 'No se pudo guardar la corrección'));
+    }
+  } catch (e) {
+    alert('⚠️ ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Guardar corrección';
+  }
+}
+
+function mostrarDetalleLicencia(fecha) {
+  fechaSeleccionadaDetalle = null;
+  document.getElementById('detalleTitulo').textContent = `🩺 ${fecha}`;
+  document.getElementById('detalleEntrada').textContent = 'Licencia médica registrada.';
+  document.getElementById('detalleSalida').textContent = 'No aplicaba marcaje este día.';
+  document.getElementById('detalleTurno').textContent = '';
+  document.getElementById('bloqueCorregir').style.display = 'none';
+  document.getElementById('detallePanel').style.display = 'block';
+}
+
+function mostrarDetalleFuturo(fecha, info) {
+  fechaSeleccionadaDetalle = null;
+  document.getElementById('detalleTitulo').textContent = `📅 ${fecha}`;
+  document.getElementById('detalleEntrada').textContent = 'Este día aún no ocurre.';
+  document.getElementById('detalleSalida').textContent = '';
+  document.getElementById('detalleTurno').textContent = info.turno
+    ? `⭐ Turno planificado${info.tipoTurno ? ' — ' + info.tipoTurno : ''} (según Finanzas Médicas)`
+    : '';
+  document.getElementById('bloqueCorregir').style.display = 'none';
+  document.getElementById('detallePanel').style.display = 'block';
+}
+
+function mostrarDetalleFeriado(fecha, desc) {
+  fechaSeleccionadaDetalle = null;
+  document.getElementById('detalleTitulo').textContent = `🎉 ${fecha}`;
+  document.getElementById('detalleEntrada').textContent = `Feriado: ${desc}`;
+  document.getElementById('detalleSalida').textContent = '';
+  document.getElementById('detalleTurno').textContent = 'No aplicaba marcaje.';
+  document.getElementById('bloqueCorregir').style.display = 'none';
+  document.getElementById('detallePanel').style.display = 'block';
+}
+
+function cerrarDetalle() {
+  document.getElementById('detallePanel').style.display = 'none';
+}
+
+function llamarWebAppJSONP(url) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'jsonpCallback_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const script = document.createElement('script');
+    let finalizado = false;
+
+    function limpiar() {
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[callbackName] = function(data) { finalizado = true; limpiar(); resolve(data); };
+    script.onerror = function() {
+      if (!finalizado) { finalizado = true; limpiar(); reject(new Error('No se pudo cargar el script (revisa que el Web App esté publicado)')); }
+    };
+    script.src = `${url}${url.includes('?') ? '&' : '?'}callback=${callbackName}`;
+    document.body.appendChild(script);
+
+    setTimeout(() => {
+      if (!finalizado) { finalizado = true; limpiar(); reject(new Error('Tiempo de espera agotado (170s). El script puede seguir corriendo — espera un minuto y presiona "Actualizar vista".')); }
+    }, 170000);
+  });
+}
+
+async function actualizarDesdeGmail() {
+  if (WEB_APP_URL.startsWith('PEGA_AQUI') || !WEB_APP_URL) {
+    alert('⚠️ Falta configurar la URL del Web App (constante WEB_APP_URL).');
+    return;
+  }
+  const btn = document.getElementById('btnGmail');
+  const banner = document.getElementById('estadoBanner');
+  btn.disabled = true;
+  btn.textContent = '⏳ Buscando en Gmail...';
+  banner.className = 'estado-banner cargando';
+  banner.textContent = 'Buscando nuevos correos de marcaje en Gmail... esto puede tardar unos segundos.';
+
+  try {
+    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=actualizar`);
+    if (data.success) {
+      banner.className = 'estado-banner ok';
+      banner.textContent = '✓ ' + (data.mensaje || 'Búsqueda en Gmail completada.') + ' Recargando calendario...';
+      await cargarMes();
+    } else {
+      banner.className = 'estado-banner error';
+      banner.textContent = '⚠️ ' + (data.mensaje || 'Error al actualizar');
+    }
+  } catch (e) {
+    banner.className = 'estado-banner error';
+    banner.textContent = '⚠️ ' + e.message;
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📧 Buscar en Gmail ahora';
+  }
+}
+
+async function cargarSaldos(anio) {
+  document.getElementById('saldosAnio').textContent = `(${anio})`;
+  const banner = document.getElementById('saldosBanner');
+  banner.style.display = 'none';
+  if (WEB_APP_URL.startsWith('PEGA_AQUI') || !WEB_APP_URL) return;
+
+  try {
+    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=saldos&anio=${anio}`);
+    if (data.success) {
+      document.getElementById('saldoAdminNum').textContent = data.admin;
+      document.getElementById('saldoVacNum').textContent = data.vacaciones;
+    }
+  } catch (e) {
+    document.getElementById('saldoAdminNum').textContent = '–';
+    document.getElementById('saldoVacNum').textContent = '–';
+    banner.className = 'estado-banner error';
+    banner.textContent = '⚠️ No se pudo cargar el saldo: ' + e.message;
+    banner.style.display = 'block';
+  }
+}
+
+function actualizarCamposSolicitud() {
+  const tipo = document.getElementById('solTipo').value;
+  document.getElementById('labelFraccion').style.display = tipo === 'Administrativo' ? 'block' : 'none';
+}
+
+function isoADDMMYYYY(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+async function enviarSolicitud(event) {
+  event.preventDefault();
+  const btn = document.getElementById('btnSolicitar');
+  const banner = document.getElementById('saldosBanner');
+
+  const tipo = document.getElementById('solTipo').value;
+  const fraccionSel = document.getElementById('solFraccion').value;
+  const fechaInicioRaw = document.getElementById('solFechaInicio').value;
+  const fechaFinRaw = document.getElementById('solFechaFin').value || fechaInicioRaw;
+  const notas = document.getElementById('solNotas').value;
+
+  if (!fechaInicioRaw) { alert('Selecciona una fecha de inicio.'); return false; }
+
+  const fechaInicio = isoADDMMYYYY(fechaInicioRaw);
+  const fechaFin = isoADDMMYYYY(fechaFinRaw);
+  const fraccion = tipo === 'Administrativo' ? fraccionSel : 'Día completo';
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Enviando...';
+  banner.style.display = 'block';
+  banner.className = 'estado-banner cargando';
+  banner.textContent = 'Registrando solicitud...';
+
+  try {
+    const params = new URLSearchParams({ accion: 'solicitar', tipo, fechaInicio, fechaFin, fraccion, notas });
+    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?${params.toString()}`);
+    if (data.success) {
+      banner.className = 'estado-banner ok';
+      banner.textContent = '✓ ' + data.mensaje;
+      document.getElementById('saldoAdminNum').textContent = data.saldoAdmin;
+      document.getElementById('saldoVacNum').textContent = data.saldoVacaciones;
+      document.getElementById('formSolicitud').reset();
+      actualizarCamposSolicitud();
+    } else {
+      banner.className = 'estado-banner error';
+      banner.textContent = '⚠️ ' + (data.mensaje || 'Error al registrar la solicitud');
+    }
+  } catch (e) {
+    banner.className = 'estado-banner error';
+    banner.textContent = '⚠️ ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📩 Registrar solicitud';
+  }
+
+  await cargarListaSolicitudes();
+  return false;
+}
+
+async function cargarListaSolicitudes() {
+  const cont = document.getElementById('listaSolicitudes');
+  const anio = fechaVista.getFullYear();
+  cont.innerHTML = '<span style="color:#9ca3af;">Cargando...</span>';
+  if (WEB_APP_URL.startsWith('PEGA_AQUI') || !WEB_APP_URL) { cont.innerHTML = ''; return; }
+
+  try {
+    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=listarSolicitudes&anio=${anio}`);
+    if (!data.success || !data.solicitudes || data.solicitudes.length === 0) {
+      cont.innerHTML = '<span style="color:#9ca3af;">Sin solicitudes registradas este año.</span>';
+      return;
+    }
+    cont.innerHTML = '';
+    data.solicitudes.forEach(s => {
+      const fila = document.createElement('div');
+      fila.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#f9fafb; padding:8px 10px; border-radius:8px; border:1px solid #e5e7eb;';
+      const rango = s.fechaFin && s.fechaFin !== s.fechaInicio ? `${s.fechaInicio} al ${s.fechaFin}` : s.fechaInicio;
+      fila.innerHTML = `<span>${s.tipo === 'Administrativo' ? '🟡' : '🟢'} ${s.tipo} · ${rango} · ${s.dias} día(s)${s.fraccion && s.fraccion !== 'Día completo' ? ' (' + s.fraccion + ')' : ''}</span>`;
+      const btnDel = document.createElement('button');
+      btnDel.type = 'button'; btnDel.textContent = '🗑️'; btnDel.title = 'Eliminar esta solicitud';
+      btnDel.style.cssText = 'border:none; background:none; cursor:pointer; font-size:1em; padding:2px 6px;';
+      btnDel.onclick = () => eliminarSolicitudUI(s.marcaTemporal);
+      fila.appendChild(btnDel);
+      cont.appendChild(fila);
+    });
+  } catch (e) {
+    cont.innerHTML = '<span style="color:#991b1b;">⚠️ No se pudo cargar la lista.</span>';
+  }
+}
+
+async function eliminarSolicitudUI(marcaTemporal) {
+  if (!confirm('¿Eliminar esta solicitud? Esto devuelve el día al saldo disponible.')) return;
+  const banner = document.getElementById('saldosBanner');
+  banner.style.display = 'block';
+  banner.className = 'estado-banner cargando';
+  banner.textContent = 'Eliminando solicitud...';
+
+  try {
+    const params = new URLSearchParams({ accion: 'eliminarSolicitud', marcaTemporal });
+    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?${params.toString()}`);
+    if (data.success) {
+      banner.className = 'estado-banner ok';
+      banner.textContent = '✓ ' + data.mensaje;
+      if (data.saldoAdmin !== undefined) document.getElementById('saldoAdminNum').textContent = data.saldoAdmin;
+      if (data.saldoVacaciones !== undefined) document.getElementById('saldoVacNum').textContent = data.saldoVacaciones;
+      await cargarListaSolicitudes();
+    } else {
+      banner.className = 'estado-banner error';
+      banner.textContent = '⚠️ ' + (data.mensaje || 'No se pudo eliminar');
+    }
+  } catch (e) {
+    banner.className = 'estado-banner error';
+    banner.textContent = '⚠️ ' + e.message;
+  }
+}
+
+async function enviarLicencia(event) {
+  event.preventDefault();
+  const btn = document.getElementById('btnLicencia');
+  const banner = document.getElementById('licenciaBanner');
+
+  const fechaInicioRaw = document.getElementById('licFechaInicio').value;
+  const fechaFinRaw = document.getElementById('licFechaFin').value || fechaInicioRaw;
+  if (!fechaInicioRaw) { alert('Selecciona una fecha de inicio.'); return false; }
+
+  const fechaInicio = isoADDMMYYYY(fechaInicioRaw);
+  const fechaFin = isoADDMMYYYY(fechaFinRaw);
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Enviando...';
+  banner.style.display = 'block';
+  banner.className = 'estado-banner cargando';
+  banner.textContent = 'Registrando licencia médica...';
+
+  try {
+    const params = new URLSearchParams({ accion: 'licencia', fechaInicio, fechaFin });
+    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?${params.toString()}`);
+    if (data.success) {
+      banner.className = 'estado-banner ok';
+      banner.textContent = '✓ ' + data.mensaje;
+      document.getElementById('formLicencia').reset();
+    } else {
+      banner.className = 'estado-banner error';
+      banner.textContent = '⚠️ ' + (data.mensaje || 'Error al registrar la licencia');
+    }
+  } catch (e) {
+    banner.className = 'estado-banner error';
+    banner.textContent = '⚠️ ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🩺 Registrar licencia';
+  }
+  return false;
+}
+
+function cambiarMes(delta) {
+  cerrarDetalle();
+  fechaVista.setDate(1);
+  fechaVista.setMonth(fechaVista.getMonth() + delta);
+  cargarMes();
+}
+
+actualizarCamposSolicitud();
+cargarMes();
+</script>
 </body>
 </html>
