@@ -77,6 +77,8 @@
   .dia.no-trackeado { background:#f9fafb; color:#c1c5cc; }
   .dia.feriado { background:#fef3c7; color:#92400e; border-color:#fde68a; cursor:pointer; }
   .dia.licencia { background:#cffafe; color:#155e75; border-color:#67e8f9; cursor:pointer; }
+  .dia.diaadmin { background:#fef9c3; color:#854d0e; border-color:#fde68a; cursor:pointer; }
+  .dia.vacaciones { background:#99f6e4; color:#115e59; border-color:#5eead4; cursor:pointer; }
   .dia.hoy { box-shadow: 0 0 0 3px #3b82f6 inset; }
 
   .dia-numero { font-weight:700; font-size:clamp(.75em,3vw,.95em); margin-bottom:4px; }
@@ -158,6 +160,8 @@
       <div class="leyenda-item"><span style="font-size:1.1em;">⭐</span><span>Día con turno (toca el día para ver detalle)</span></div>
       <div class="leyenda-item"><span style="font-size:1.1em;">🎉</span><span>Feriado</span></div>
       <div class="leyenda-item"><span style="font-size:1.1em;">🩺</span><span>Licencia médica</span></div>
+      <div class="leyenda-item"><span style="font-size:1.1em;">🟡</span><span>Día administrativo autorizado</span></div>
+      <div class="leyenda-item"><span style="font-size:1.1em;">🏖️</span><span>Vacaciones autorizadas</span></div>
       <div class="leyenda-item"><div style="width:14px;height:14px;background:#f9fafb;border:2px solid #e5e7eb;border-radius:3px;flex-shrink:0;"></div><span>No aplicaba marcaje</span></div>
     </div>
 
@@ -259,6 +263,7 @@ let feriadosMap = new Map();
 let turnoDatesSet = new Set(); // "DD/MM/YYYY" -> respaldo/futuro, desde Finanzas Médicas
 let turnoInfoMap = new Map();  // "DD/MM/YYYY" -> {centro, horas, tipo}, desde Finanzas Médicas
 let licenciasSet = new Set();
+let diasAutorizadosMap = new Map(); // "DD/MM/YYYY" -> {tipo:'Administrativo'|'Vacaciones', fraccion, notas}
 
 async function fetchSheetTable(sheetId, sheetName) {
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
@@ -387,6 +392,42 @@ async function cargarLicencias() {
   }
 }
 
+/**
+ * Lee la hoja "Solicitudes" (días administrativos y vacaciones ya registrados)
+ * y arma un mapa de cada fecha cubierta -> {tipo, fraccion, notas}, para que
+ * el calendario los pinte como "autorizado" en vez de "falta de marcaje".
+ */
+async function cargarDiasAutorizados() {
+  diasAutorizadosMap = new Map();
+  try {
+    const tabla = await fetchSheetTable(SHEET_URL_ID, 'Solicitudes');
+    if (!tabla.cols || !tabla.cols[1] || tabla.cols[1].label !== 'Tipo') {
+      throw new Error('La hoja "Solicitudes" todavía no existe.');
+    }
+    const filas = filaAValores(tabla);
+    filas.forEach(fila => {
+      const tipo = (fila[1] || '').toString();
+      const fechaInicio = valorFechaCelda(fila[2]);
+      if (!fechaInicio) return;
+      const fechaFin = valorFechaCelda(fila[3]) || fechaInicio;
+      const fraccion = (fila[4] || '').toString();
+      const notas = (fila[7] || '').toString();
+
+      const [d1, m1, a1] = fechaInicio.split('/').map(Number);
+      const [d2, m2, a2] = fechaFin.split('/').map(Number);
+      let actual = new Date(a1, m1 - 1, d1);
+      const finDate = new Date(a2, m2 - 1, d2);
+      while (actual <= finDate) {
+        const fechaStr = `${String(actual.getDate()).padStart(2,'0')}/${String(actual.getMonth()+1).padStart(2,'0')}/${actual.getFullYear()}`;
+        diasAutorizadosMap.set(fechaStr, { tipo, fraccion, notas });
+        actual.setDate(actual.getDate() + 1);
+      }
+    });
+  } catch (e) {
+    console.log('Sin hoja de Solicitudes todavía:', e.message);
+  }
+}
+
 let cargaMesToken = 0;
 
 async function cargarMes() {
@@ -415,6 +456,9 @@ async function cargarMes() {
   if (miToken !== cargaMesToken) return;
 
   await cargarLicencias();
+  if (miToken !== cargaMesToken) return;
+
+  await cargarDiasAutorizados();
   if (miToken !== cargaMesToken) return;
 
   await cargarTurnosFinanzasMedicas();
@@ -567,6 +611,7 @@ function renderizarCalendario(año, mesIdx) {
     div.appendChild(numero);
 
     const esLicencia = licenciasSet.has(fechaStr);
+    const infoAutorizado = diasAutorizadosMap.get(fechaStr);
 
     if (esLicencia) {
       div.classList.add('licencia');
@@ -574,6 +619,13 @@ function renderizarCalendario(año, mesIdx) {
       marca.className = 'estrella'; marca.textContent = '🩺';
       div.appendChild(marca);
       div.onclick = () => mostrarDetalleLicencia(fechaStr);
+    } else if (infoAutorizado) {
+      const esVacaciones = infoAutorizado.tipo === 'Vacaciones';
+      div.classList.add(esVacaciones ? 'vacaciones' : 'diaadmin');
+      const marca = document.createElement('div');
+      marca.className = 'estrella'; marca.textContent = esVacaciones ? '🏖️' : '🟡';
+      div.appendChild(marca);
+      div.onclick = () => mostrarDetalleAutorizado(fechaStr, infoAutorizado);
     } else if (trackeado && !esFuturo) {
       const tickets = document.createElement('div');
       tickets.className = 'tickets';
@@ -622,6 +674,7 @@ function renderizarStats() {
     const info = datosMarcajes[fecha];
     if (!info) return;
     if (licenciasSet.has(fecha)) return;
+    if (diasAutorizadosMap.has(fecha)) return; // día administrativo o vacaciones: no cuenta como falta
 
     const [d, m, a] = fecha.split('/').map(Number);
     const fechaDelDia = new Date(a, m - 1, d);
@@ -705,6 +758,17 @@ async function enviarCorreccionMarcaje() {
     btn.disabled = false;
     btn.textContent = '💾 Guardar corrección';
   }
+}
+
+function mostrarDetalleAutorizado(fecha, info) {
+  fechaSeleccionadaDetalle = null;
+  const emoji = info.tipo === 'Vacaciones' ? '🏖️' : '🟡';
+  document.getElementById('detalleTitulo').textContent = `${emoji} ${fecha}`;
+  document.getElementById('detalleEntrada').textContent = `${info.tipo}${info.fraccion && info.fraccion !== 'Día completo' ? ' — ' + info.fraccion : ''}`;
+  document.getElementById('detalleSalida').textContent = info.notas ? `Notas: ${info.notas}` : '';
+  document.getElementById('detalleTurno').textContent = 'No se contabiliza como falta de marcaje (día autorizado).';
+  document.getElementById('bloqueCorregir').style.display = 'none';
+  document.getElementById('detallePanel').style.display = 'block';
 }
 
 function mostrarDetalleLicencia(fecha) {
