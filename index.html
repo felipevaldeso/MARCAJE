@@ -5,116 +5,311 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Monitor de Marcaje - CESFAM</title>
 <style>
+  :root {
+    --bg: #f3f5f5;
+    --surface: #ffffff;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #1c1917;
+    --text-2: #57534e;
+    --text-3: #a8a29e;
+    --accent: #0f766e;
+    --accent-dark: #115e59;
+    --accent-soft: #e6f4f1;
+    --ok: #22a35a;
+    --bad: #dc3b30;
+    --warn: #e0a20f;
+    --off: #d6d3d1;
+    --turno: #7c3aed;
+    --radius: 8px;
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { overflow-x: hidden; width: 100%; }
   body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
     min-height: 100vh;
-    padding: 16px;
-    padding-top: max(16px, env(safe-area-inset-top));
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding: 20px 16px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
+    -webkit-font-smoothing: antialiased;
   }
-  .container { max-width: 900px; margin: 0 auto; width: 100%; }
+  .container { max-width: 860px; margin: 0 auto; width: 100%; }
 
   .header {
-    background: white; border-radius: 16px; padding: 24px;
-    box-shadow: 0 8px 25px rgba(0,0,0,.15); text-align: center; margin-bottom: 20px;
+    background: var(--accent); color: #fff; border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 16px;
   }
-  .header h1 { color:#1f2937; font-size: 1.8em; margin-bottom: 4px; }
-  .header p { color:#6b7280; font-size: .95em; }
+  .header h1 { font-size: 1.3em; font-weight: 600; letter-spacing: -.01em; }
+  .header p { color: #ccebe6; font-size: .85em; margin-top: 2px; }
 
   .card {
-    background: white; border-radius: 16px; padding: 24px;
-    box-shadow: 0 8px 25px rgba(0,0,0,.15); margin-bottom: 20px; overflow: hidden;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; margin-bottom: 16px; overflow: hidden;
   }
-  .card h2 { color:#1f2937; font-size:1.2em; margin-bottom:16px; }
-  .card h2 .anio-chip { color:#9ca3af; font-weight:400; font-size:.7em; }
+  .card h2 {
+    font-size: .8em; font-weight: 600; color: var(--accent-dark);
+    border-left: 3px solid var(--accent); padding-left: 8px;
+    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px;
+  }
+  .card h2 .anio-chip { color: var(--text-3); font-weight: 500; }
 
-  .nav { display:flex; align-items:center; justify-content:space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  .nav { display:flex; align-items:center; justify-content:space-between; margin-bottom: 14px; gap: 10px; }
   .nav button {
-    background:#667eea; color:white; border:none; border-radius:10px;
-    padding: 10px 18px; font-weight:600; cursor:pointer; font-size:.95em; transition: all .2s ease;
+    background: var(--surface); color: var(--text); border: 1px solid var(--border-strong);
+    border-radius: 6px; width: 36px; height: 36px; font-size: 1.1em; line-height: 1; cursor: pointer;
   }
-  .nav button:hover { background:#5568d3; transform: translateY(-2px); }
-  .nav button:disabled { opacity:.5; cursor:not-allowed; transform:none; }
-  .nav .mes { font-size:1.4em; font-weight:700; color:#1f2937; text-transform:capitalize; }
+  .nav button:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-dark); }
+  .nav button { color: var(--accent-dark); }
+  .nav .mes { font-size: 1.1em; font-weight: 600; text-transform: capitalize; color: var(--accent-dark); }
 
-  .refresh-btn {
-    background:#10b981; color:white; border:none; border-radius:10px;
-    padding: 8px 16px; font-weight:600; cursor:pointer; font-size:.85em;
+  .acciones { display:flex; gap:8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .btn {
+    font-family: inherit; font-size: .82em; font-weight: 500; cursor: pointer;
+    border-radius: 6px; padding: 8px 14px; border: 1px solid var(--border-strong);
+    background: var(--surface); color: var(--text);
   }
-  .refresh-btn:hover { background:#059669; }
-  .refresh-btn.gmail-btn { background:#ea4335; }
-  .refresh-btn.gmail-btn:hover { background:#d33426; }
-  .refresh-btn:disabled { opacity:.6; cursor:not-allowed; }
+  .btn:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .btn.primario { background: var(--accent); border-color: var(--accent); color: #fafaf9; }
+  .btn.primario:hover { background: var(--accent-dark); }
+  .btn.chico { padding: 4px 10px; font-size: .75em; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
 
-  .estado-banner { text-align:center; padding:10px; border-radius:10px; margin-bottom: 16px; font-size:.9em; font-weight:600; }
-  .estado-banner.cargando { background:#eff6ff; color:#1e40af; }
-  .estado-banner.error { background:#fee2e2; color:#991b1b; }
-  .estado-banner.ok { background:#d1fae5; color:#065f46; }
+  .estado-banner {
+    padding: 8px 12px; border-radius: 6px; margin-bottom: 14px; font-size: .8em;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text-2);
+  }
+  .estado-banner.cargando { color: var(--text-2); }
+  .estado-banner.error { border-color: #e7c9c4; background: #faf3f2; color: var(--bad); }
+  .estado-banner.ok { color: #17663e; background: #ecf8f1; border-color: #c6ead5; }
+  .estado-banner.cargando { background: var(--accent-soft); border-color: #c4e3dd; color: var(--accent-dark); }
 
-  .stats-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr)); gap:10px; margin-bottom: 20px; }
-  .stat { background:#f9fafb; border-radius:10px; padding:12px; text-align:center; border: 2px solid #e5e7eb; min-width: 0; }
-  .stat .num { font-size:1.6em; font-weight:800; color:#1f2937; }
-  .stat .lbl { font-size:.7em; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
+  .stats-row {
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(90px,1fr));
+    border: 1px solid var(--border); border-radius: 6px; margin-bottom: 16px; overflow: hidden;
+  }
+  .stat { padding: 10px 12px; min-width: 0; border-right: 1px solid var(--border); }
+  .stat:last-child { border-right: none; }
+  #statsRow { grid-template-columns: repeat(5, minmax(0,1fr)); }
+  .stat .num { font-size: 1.35em; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: .68em; color: var(--text-2); margin-top: 1px; }
+  #statCompleto { color: var(--ok); }
+  #statParcial { color: #b7791f; }
+  #statFaltante { color: var(--bad); }
+  #statTurnos { color: var(--turno); }
+  #statLibres { color: #0c5a85; }
+  #saldoAdminNum { color: #7a5d00; }
+  #saldoVacNum { color: #17663e; }
 
-  .semana-header { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:6px; margin-bottom:6px; }
-  .semana-header div { text-align:center; font-weight:700; color:#6b7280; font-size:.75em; text-transform:uppercase; letter-spacing:.5px; padding:6px 0; min-width: 0; }
+  .semana-header { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:4px; margin-bottom:4px; }
+  .semana-header div { text-align:center; font-weight:500; color: var(--text-3); font-size:.7em; padding:4px 0; min-width: 0; }
 
-  .calendario { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:6px; }
+  .calendario { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:4px; }
 
   .dia {
-    aspect-ratio: 1; min-width: 0; min-height: 0; border-radius: 10px; border: 2px solid #e5e7eb;
-    padding: 6px 4px; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    position: relative; cursor:pointer; transition: all .2s ease;
+    aspect-ratio: 1; min-width: 0; min-height: 0; border-radius: 6px; border: 1px solid var(--border);
+    padding: 4px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position: relative; cursor:pointer; background: var(--surface);
   }
-  .dia:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0,0,0,.12); }
-  .dia.vacio { border-color: transparent; cursor:default; }
-  .dia.vacio:hover { transform:none; box-shadow:none; }
-  .dia.no-trackeado { background:#f9fafb; color:#c1c5cc; }
-  .dia.feriado { background:#fef3c7; color:#92400e; border-color:#fde68a; cursor:pointer; }
-  .dia.licencia { background:#cffafe; color:#155e75; border-color:#67e8f9; cursor:pointer; }
-  .dia.diaadmin { background:#fef9c3; color:#854d0e; border-color:#fde68a; cursor:pointer; }
-  .dia.vacaciones { background:#99f6e4; color:#115e59; border-color:#5eead4; cursor:pointer; }
-  .dia.hoy { box-shadow: 0 0 0 3px #3b82f6 inset; }
+  .dia:hover { border-color: var(--accent); }
+  .dia.vacio { border-color: transparent; background: transparent; cursor:default; }
+  .dia.no-trackeado { background: #fafaf9; color: var(--text-3); border-color: #efeeec; cursor: default; }
+  .dia.no-trackeado[onclick], .dia.no-trackeado.clicable { cursor: pointer; }
+  .dia.feriado    { background:#fdf0d5; border-color:#f2d58f; color:#8a5a00; }
+  .dia.licencia   { background:#e0f2fe; border-color:#9fd3f5; color:#0c5a85; }
+  .dia.diaadmin   { background:#fef6c7; border-color:#f1df7a; color:#7a5d00; }
+  .dia.vacaciones { background:#dcf5e7; border-color:#96dbb3; color:#17663e; }
+  .dia.comision   { background:#e6e8fb; border-color:#b0b7f0; color:#3730a3; }
+  .dia.permiso    { background:#fbe4ec; border-color:#f0aac2; color:#9d2350; }
+  .dia.medio-dia  { border-style: dashed; border-color: var(--warn); }
+  .dia.hoy { box-shadow: inset 0 0 0 2px var(--accent); }
 
-  .dia-numero { font-weight:700; font-size:clamp(.75em,3vw,.95em); margin-bottom:4px; }
+  .dia-numero { font-weight:500; font-size:clamp(.72em,3vw,.9em); margin-bottom:4px; font-variant-numeric: tabular-nums; }
   .tickets { display:flex; gap:3px; }
-  .ticket { width:14px; height:14px; border-radius:50%; border: 1.5px solid rgba(0,0,0,.15); flex-shrink: 0; }
-  .ticket.verde { background:#10b981; }
-  .ticket.rojo { background:#ef4444; }
-  .estrella { position:absolute; top:2px; right:2px; font-size:.8em; }
+  .ticket { width:8px; height:8px; border-radius:50%; flex-shrink: 0; }
+  .ticket.verde { background: var(--ok); }
+  .ticket.rojo { background: var(--bad); }
+  .ticket.amarillo { background: var(--warn); }
+  .ticket.gris { background: var(--off); }
 
-  .leyenda { margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb; display:grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap:10px; font-size:.85em; color:#374151; }
+  /* Siglas: F feriado · L licencia · A administrativo · V vacaciones · C comisión · P permiso · T turno */
+  .estrella {
+    position:absolute; top:3px; right:4px; font-size:.58em; font-weight:700;
+    letter-spacing:.02em; color: currentColor; opacity: .85;
+  }
+  .estrella.turno { color: var(--turno); opacity: 1; }
+  .badge-medio {
+    position:absolute; top:3px; left:4px; font-size:.58em; font-weight:700; color: var(--warn);
+  }
+
+  .leyenda {
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);
+    display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:8px 14px;
+    font-size:.76em; color: var(--text-2);
+  }
   .leyenda-item { display:flex; align-items:center; gap:8px; min-width: 0; }
-  .leyenda-tickets { display:flex; gap:3px; flex-shrink: 0; }
+  .leyenda-tickets { display:flex; gap:3px; flex-shrink: 0; width: 22px; }
+  .sigla {
+    display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+    width:22px; height:18px; border-radius:4px; font-size:.85em; font-weight:700; border:1px solid;
+  }
+  .sigla.feriado    { background:#fdf0d5; border-color:#f2d58f; color:#8a5a00; }
+  .sigla.licencia   { background:#e0f2fe; border-color:#9fd3f5; color:#0c5a85; }
+  .sigla.diaadmin   { background:#fef6c7; border-color:#f1df7a; color:#7a5d00; }
+  .sigla.vacaciones { background:#dcf5e7; border-color:#96dbb3; color:#17663e; }
+  .sigla.comision   { background:#e6e8fb; border-color:#b0b7f0; color:#3730a3; }
+  .sigla.permiso    { background:#fbe4ec; border-color:#f0aac2; color:#9d2350; }
+  .sigla.turno      { background:#f1eafe; border-color:#cdb6f7; color:var(--turno); }
+  .sigla.medio      { background:var(--surface); border-color:var(--warn); border-style:dashed; color:var(--warn); }
+  .sigla.vacio      { background:#fafaf9; border-color:#efeeec; }
 
-  .detalle-panel { display:none; margin-top: 16px; padding: 16px; border-radius: 10px; background:#f9fafb; border-left: 4px solid #667eea; }
-  .detalle-panel h3 { color:#1f2937; margin-bottom:8px; font-size:1.05em; }
-  .detalle-panel p { color:#4b5563; font-size:.9em; margin-bottom:4px; }
-  .detalle-panel .cerrar { float:right; cursor:pointer; color:#9ca3af; font-weight:700; }
+  .detalle-panel {
+    display:none; margin-top: 14px; padding: 14px 16px; border-radius: 6px;
+    background: var(--accent-soft); border: 1px solid #c4e3dd; border-left: 3px solid var(--accent);
+  }
+  .detalle-panel h3 { margin-bottom:6px; font-size:.92em; font-weight:600; color: var(--accent-dark); }
+  .detalle-panel p { color: var(--text-2); font-size:.84em; margin-bottom:3px; }
+  .detalle-panel .cerrar { float:right; cursor:pointer; color: var(--text-3); font-size: .9em; }
 
   .form-solicitud { display:flex; flex-direction:column; gap:12px; margin-top: 6px; }
   .form-fila { display:flex; gap:10px; flex-wrap:wrap; }
-  .form-campo { flex:1; min-width:140px; font-size:.85em; color:#374151; }
+  .form-campo { flex:1; min-width:140px; font-size:.78em; color: var(--text-2); }
   .form-campo select, .form-campo input {
-    width:100%; padding:9px 10px; border-radius:8px; border:1.5px solid #e5e7eb;
-    margin-top:4px; font-size:.9em; font-family:inherit;
+    width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--border-strong);
+    margin-top:4px; font-size:1.08em; font-family:inherit; color: var(--text); background: var(--surface);
   }
-  .form-campo select:focus, .form-campo input:focus { outline:none; border-color:#667eea; }
+  .form-campo select:focus, .form-campo input:focus { outline:none; border-color: var(--accent); }
+
+  .subtitulo-lista { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:.8em; font-weight:600; color: var(--text-2); }
+  .separador { margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
+  .fila-solicitud {
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
+    padding:8px 10px; border-radius:6px; border:1px solid var(--border); font-size:.82em;
+  }
+  .fila-solicitud .info { display:flex; align-items:center; gap:8px; min-width:0; }
+  .btn-eliminar { border:none; background:none; cursor:pointer; color: var(--text-3); font-size:.85em; padding:2px 4px; font-family: inherit; }
+  .btn-eliminar:hover { color: var(--bad); }
+
+  /* ---- Encabezado con botón de configuración ---- */
+  .header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .btn-config {
+    background: rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.35);
+    border-radius:6px; padding:7px 12px; font-size:.8em; font-family:inherit; cursor:pointer; white-space:nowrap;
+  }
+  .btn-config:hover { background: rgba(255,255,255,.24); }
+
+  /* ---- Panel de configuración ---- */
+  .cfg-overlay { position:fixed; inset:0; background: var(--bg); z-index:50; overflow-y:auto; display:none; }
+  .cfg-overlay.abierto { display:block; }
+  .cfg-top {
+    position:sticky; top:0; z-index:2; background: var(--accent); color:#fff;
+    padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top));
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .cfg-top h2 { font-size:1.05em; font-weight:600; }
+  .cfg-tabs {
+    position:sticky; top:48px; z-index:1; background: var(--surface); border-bottom:1px solid var(--border);
+    display:flex; gap:4px; overflow-x:auto; padding: 8px 12px; scrollbar-width: none;
+  }
+  .cfg-tabs::-webkit-scrollbar { display:none; }
+  .cfg-tab {
+    flex-shrink:0; border:1px solid var(--border); background: var(--surface); color: var(--text-2);
+    border-radius: 16px; padding: 6px 12px; font-size:.8em; font-family:inherit; cursor:pointer;
+  }
+  .cfg-tab.activa { background: var(--accent); border-color: var(--accent); color:#fff; }
+  .cfg-cuerpo { max-width: 760px; margin: 0 auto; padding: 16px; padding-bottom: max(32px, env(safe-area-inset-bottom)); }
+  .cfg-seccion { display:none; }
+  .cfg-seccion.activa { display:block; }
+  .cfg-desc { font-size:.8em; color: var(--text-2); margin-bottom: 14px; line-height:1.45; }
+  .cfg-campo { margin-bottom: 14px; }
+  .cfg-campo label.titulo { display:block; font-size:.82em; font-weight:600; color: var(--text); margin-bottom:4px; }
+  .cfg-campo .nota { font-size:.72em; color: var(--text-3); margin-top:3px; }
+  .cfg-campo input[type=text], .cfg-campo input[type=url], .cfg-campo input[type=number],
+  .cfg-campo input[type=time], .cfg-campo input[type=password], .cfg-campo input[type=date], .cfg-campo textarea {
+    width:100%; padding:9px 10px; border-radius:6px; border:1px solid var(--border-strong);
+    font-size:.9em; font-family:inherit; color: var(--text); background: var(--surface);
+  }
+  .cfg-campo textarea { min-height: 64px; resize: vertical; }
+  .cfg-campo input:focus, .cfg-campo textarea:focus { outline:none; border-color: var(--accent); }
+  .cfg-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 0 12px; }
+  .cfg-subtitulo { font-size:.74em; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color: var(--accent-dark); margin: 18px 0 10px; }
+  .cfg-guardar { display:flex; gap:8px; align-items:center; margin-top: 6px; flex-wrap:wrap; }
+
+  /* interruptor SI/NO */
+  .switch { display:flex; align-items:center; gap:10px; cursor:pointer; font-size:.85em; }
+  .switch input { display:none; }
+  .switch .pista { width:40px; height:22px; border-radius:11px; background: var(--off); position:relative; transition: background .15s; flex-shrink:0; }
+  .switch .pista::after { content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; transition: left .15s; }
+  .switch input:checked + .pista { background: var(--accent); }
+  .switch input:checked + .pista::after { left:21px; }
+
+  /* feriados */
+  .fer-nav { display:flex; align-items:center; gap:10px; margin-bottom: 10px; }
+  .fer-nav strong { font-size: .95em; }
+  .fer-lista { border:1px solid var(--border); border-radius:6px; background: var(--surface); }
+  .fer-fila { display:flex; align-items:center; gap:10px; padding: 8px 10px; border-bottom:1px solid var(--border); font-size:.82em; }
+  .fer-fila:last-child { border-bottom:none; }
+  .fer-fila .f { font-variant-numeric: tabular-nums; width: 84px; flex-shrink:0; }
+  .fer-fila .d { color: var(--text-3); width: 64px; flex-shrink:0; }
+  .fer-fila .t { flex:1; min-width:0; }
+  .fer-fila.quitado .t, .fer-fila.quitado .f { text-decoration: line-through; color: var(--text-3); }
+  .origen { font-size:.72em; font-weight:600; padding:1px 7px; border-radius:10px; flex-shrink:0; }
+  .origen.Legal { background:#fdf0d5; color:#8a5a00; }
+  .origen.Manual { background: var(--accent-soft); color: var(--accent-dark); }
+
+  /* sistema */
+  .sis-fila { display:flex; justify-content:space-between; align-items:center; gap:10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size:.84em; }
+  .sis-fila:last-child { border-bottom:none; }
+  .sis-fila .sub { font-size:.85em; color: var(--text-3); margin-top:2px; }
+  .pill { font-size:.75em; font-weight:600; padding: 2px 9px; border-radius: 10px; }
+  .pill.on { background:#dcf5e7; color:#17663e; }
+  .pill.off { background:#f1f1f0; color:#78716c; }
+
+  /* apariencia */
+  .temas { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:8px; }
+  .tema { border:1px solid var(--border); border-radius:6px; padding:10px; cursor:pointer; background: var(--surface); font-size:.82em; display:flex; align-items:center; gap:8px; font-family:inherit; }
+  .tema .muestra { width:18px; height:18px; border-radius:50%; flex-shrink:0; }
+  .tema.activo { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+  /* ---- Avisos de marcaje ---- */
+  .card.avisos { border-left: 3px solid var(--accent); }
+  .card.avisos.con-pendientes { border-left-color: var(--bad); }
+  .card.avisos.con-pendientes h2 { color: var(--bad); border-left-color: var(--bad); }
+  .avisos-vacio { font-size: .82em; color: var(--text-2); }
+  .aviso-item {
+    border: 1px solid #f1c7c2; background: #fdf3f2; border-radius: 6px;
+    padding: 12px 14px; margin-bottom: 10px;
+  }
+  .aviso-item.destacado { box-shadow: 0 0 0 2px var(--bad); }
+  .aviso-titulo { font-size: .9em; font-weight: 600; color: #8f2a20; margin-bottom: 2px; }
+  .aviso-sub { font-size: .76em; color: var(--text-2); margin-bottom: 10px; }
+  .aviso-acciones { display:flex; gap:8px; flex-wrap:wrap; margin-top: 10px; }
+  .btn.peligro { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .btn.peligro:hover { background: #b9322a; border-color: #b9322a; }
+  details.avisos-extra { margin-top: 10px; font-size: .82em; }
+  details.avisos-extra summary { cursor: pointer; color: var(--accent-dark); font-weight: 500; padding: 4px 0; }
+  .hist-item { display:flex; justify-content:space-between; gap:8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: .95em; }
+  .hist-item:last-child { border-bottom: none; }
+  .estado-chip { font-size: .78em; font-weight: 600; padding: 1px 8px; border-radius: 10px; white-space: nowrap; align-self: flex-start; }
+  .estado-chip.Enviado { background:#dbeafe; color:#1e4f9a; }
+  .estado-chip.Aclarado { background:#e6e8fb; color:#3730a3; }
+  .estado-chip.Resuelto { background:#dcf5e7; color:#17663e; }
+  .estado-chip.Descartado { background:#f1f1f0; color:#78716c; }
+  .aviso-config { font-size: .78em; color: #8a5a00; background:#fdf0d5; border:1px solid #f2d58f; border-radius:6px; padding:8px 10px; margin-bottom:10px; }
 
   @media (max-width:600px){
-    .dia { min-height: 0; }
-    .ticket { width:11px; height:11px; }
-    .nav .mes { font-size:1.15em; }
-    .card { padding: 16px; }
+    .card { padding: 14px; }
+    .ticket { width:7px; height:7px; }
+    .stat { padding: 8px 6px; }
+    .stat .num { font-size: 1.15em; }
+    .stat .lbl { font-size: .62em; }
   }
   @media (max-width:360px){
-    .ticket { width:9px; height:9px; }
-    .dia { padding: 4px 2px; }
+    .ticket { width:6px; height:6px; }
+    .dia { padding: 3px 2px; }
   }
 </style>
 </head>
@@ -122,29 +317,57 @@
 <div class="container">
 
   <div class="header">
-    <h1>📊 Monitor de Marcaje</h1>
-    <p>CESFAM Quinta Bella · Conectado en vivo a Google Sheets</p>
+    <div>
+      <h1>Monitor de Marcaje</h1>
+      <p>CESFAM Quinta Bella</p>
+    </div>
+    <button class="btn-config" onclick="abrirConfig()" aria-label="Abrir configuración">⚙ Configuración</button>
   </div>
+
+  <div class="card avisos" id="avisosCard">
+    <h2>Avisos de marcaje</h2>
+    <div id="avisosConfig" class="aviso-config" style="display:none;"></div>
+    <div id="avisosBanner" class="estado-banner" style="display:none;"></div>
+    <div id="avisosPendientes"><div class="avisos-vacio">Cargando…</div></div>
+
+    <details class="avisos-extra">
+      <summary>Crear aviso manual</summary>
+      <div class="form-fila" style="margin-top:8px;">
+        <label class="form-campo">Fecha<input type="date" id="avManualFecha"></label>
+        <label class="form-campo">Marcaje
+          <select id="avManualTipo"><option value="entrada">Entrada</option><option value="salida">Salida</option></select>
+        </label>
+      </div>
+      <button type="button" class="btn chico" style="margin-top:8px;" onclick="crearAvisoManualUI()">Crear aviso</button>
+    </details>
+
+    <details class="avisos-extra" id="avisosHistWrap">
+      <summary>Historial de avisos</summary>
+      <div id="avisosHistorial" style="margin-top:6px;"></div>
+    </details>
+  </div>
+
 
   <div class="card">
     <div class="nav">
-      <button id="btnPrev" onclick="cambiarMes(-1)">← Anterior</button>
-      <div class="mes" id="mesLabel">Cargando...</div>
-      <button id="btnNext" onclick="cambiarMes(1)">Siguiente →</button>
+      <button id="btnPrev" onclick="cambiarMes(-1)" aria-label="Mes anterior">‹</button>
+      <div class="mes" id="mesLabel">Cargando…</div>
+      <button id="btnNext" onclick="cambiarMes(1)" aria-label="Mes siguiente">›</button>
     </div>
 
-    <div style="text-align:center; margin-bottom:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-      <button class="refresh-btn" onclick="cargarMes()">🔄 Actualizar vista</button>
-      <button class="refresh-btn gmail-btn" id="btnGmail" onclick="actualizarDesdeGmail()">📧 Buscar en Gmail ahora</button>
+    <div class="acciones">
+      <button class="btn" onclick="cargarMes()">Actualizar vista</button>
+      <button class="btn primario" id="btnGmail" onclick="actualizarDesdeGmail()">Buscar en Gmail</button>
     </div>
 
-    <div id="estadoBanner" class="estado-banner cargando">Cargando datos desde Google Sheets...</div>
+    <div id="estadoBanner" class="estado-banner cargando">Cargando datos…</div>
 
     <div class="stats-row" id="statsRow" style="display:none;">
       <div class="stat"><div class="num" id="statCompleto">0</div><div class="lbl">Completos</div></div>
       <div class="stat"><div class="num" id="statParcial">0</div><div class="lbl">Parciales</div></div>
       <div class="stat"><div class="num" id="statFaltante">0</div><div class="lbl">Sin marcaje</div></div>
-      <div class="stat"><div class="num" id="statTurnos">0</div><div class="lbl">⭐ Turnos</div></div>
+      <div class="stat"><div class="num" id="statTurnos">0</div><div class="lbl">Turnos</div></div>
+      <div class="stat"><div class="num" id="statLibres">0</div><div class="lbl">Libres</div></div>
     </div>
 
     <div class="semana-header">
@@ -153,64 +376,71 @@
     <div class="calendario" id="calendario"></div>
 
     <div class="leyenda">
-      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket verde"></div></div><span>Jornada: Entrada + Salida OK</span></div>
-      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket rojo"></div></div><span>Solo entrada marcada</span></div>
-      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket rojo"></div><div class="ticket verde"></div></div><span>Solo salida marcada</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket verde"></div></div><span>Entrada y salida registradas</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket rojo"></div></div><span>Falta un marcaje (entrada · salida)</span></div>
       <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket rojo"></div><div class="ticket rojo"></div></div><span>Sin marcaje</span></div>
-      <div class="leyenda-item"><span style="font-size:1.1em;">⭐</span><span>Día con turno (toca el día para ver detalle)</span></div>
-      <div class="leyenda-item"><span style="font-size:1.1em;">🎉</span><span>Feriado</span></div>
-      <div class="leyenda-item"><span style="font-size:1.1em;">🩺</span><span>Licencia médica</span></div>
-      <div class="leyenda-item"><span style="font-size:1.1em;">🟡</span><span>Día administrativo autorizado</span></div>
-      <div class="leyenda-item"><span style="font-size:1.1em;">🏖️</span><span>Vacaciones autorizadas</span></div>
-      <div class="leyenda-item"><div style="width:14px;height:14px;background:#f9fafb;border:2px solid #e5e7eb;border-radius:3px;flex-shrink:0;"></div><span>No aplicaba marcaje</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket amarillo"></div></div><span>Medio día libre: no cuenta como falta</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket gris"></div></div><span>Marcaje en día libre (informativo)</span></div>
+      <div class="leyenda-item"><span class="sigla turno">T</span><span>Turno (Finanzas Médicas)</span></div>
+      <div class="leyenda-item"><span class="sigla feriado">F</span><span>Feriado</span></div>
+      <div class="leyenda-item"><span class="sigla diaadmin">A</span><span>Día administrativo</span></div>
+      <div class="leyenda-item"><span class="sigla medio">½</span><span>Medio día administrativo / permiso</span></div>
+      <div class="leyenda-item"><span class="sigla vacaciones">V</span><span>Vacaciones</span></div>
+      <div class="leyenda-item"><span class="sigla licencia">L</span><span>Licencia médica</span></div>
+      <div class="leyenda-item"><span class="sigla comision">C</span><span>Comisión / capacitación</span></div>
+      <div class="leyenda-item"><span class="sigla permiso">P</span><span>Permiso sin goce / otro</span></div>
+      <div class="leyenda-item"><span class="sigla vacio"></span><span>No aplica marcaje</span></div>
     </div>
 
     <div class="detalle-panel" id="detallePanel">
-      <span class="cerrar" onclick="cerrarDetalle()">✕</span>
+      <span class="cerrar" onclick="cerrarDetalle()" aria-label="Cerrar">✕</span>
       <h3 id="detalleTitulo"></h3>
       <p id="detalleEntrada"></p>
       <p id="detalleSalida"></p>
       <p id="detalleTurno"></p>
       <div id="bloqueCorregir" style="margin-top:12px; display:none;">
-        <button type="button" class="refresh-btn" style="background:#f59e0b;" onclick="mostrarFormularioCorregir()">✏️ Corregir este día</button>
+        <button type="button" class="btn chico" onclick="mostrarFormularioCorregir()">Corregir este día</button>
         <div id="formCorregirWrap" style="display:none; margin-top:10px;">
           <div class="form-fila">
             <label class="form-campo">Corregir
               <select id="corHoraTipo">
-                <option value="entrada">Hora Entrada</option>
-                <option value="salida">Hora Salida</option>
+                <option value="entrada">Hora entrada</option>
+                <option value="salida">Hora salida</option>
               </select>
             </label>
             <label class="form-campo">Hora (HH:MM)
               <input type="time" id="corHoraValor">
             </label>
           </div>
-          <button type="button" class="refresh-btn" style="background:#f59e0b; margin-top:8px;" onclick="enviarCorreccionMarcaje()" id="btnCorregir">💾 Guardar corrección</button>
+          <button type="button" class="btn primario" style="margin-top:10px;" onclick="enviarCorreccionMarcaje()" id="btnCorregir">Guardar corrección</button>
         </div>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <h2>📋 Saldos y Solicitudes <span class="anio-chip" id="saldosAnio"></span></h2>
+    <h2>Saldos y solicitudes <span class="anio-chip" id="saldosAnio"></span></h2>
     <div class="stats-row" style="grid-template-columns: repeat(2,1fr);">
       <div class="stat"><div class="num" id="saldoAdminNum">–</div><div class="lbl">Días administrativos restantes</div></div>
       <div class="stat"><div class="num" id="saldoVacNum">–</div><div class="lbl">Vacaciones disponibles</div></div>
     </div>
-    <div id="saldosBanner" class="estado-banner" style="display:none; margin-top:16px;"></div>
+    <div id="saldosBanner" class="estado-banner" style="display:none;"></div>
     <form class="form-solicitud" id="formSolicitud" onsubmit="return enviarSolicitud(event)">
       <div class="form-fila">
         <label class="form-campo">Tipo
           <select id="solTipo" onchange="actualizarCamposSolicitud()">
             <option value="Administrativo">Día administrativo</option>
             <option value="Vacaciones">Vacaciones</option>
+            <option value="Comisión/Capacitación">Comisión / capacitación</option>
+            <option value="Permiso sin goce">Permiso sin goce</option>
+            <option value="Otro permiso">Otro permiso</option>
           </select>
         </label>
         <label class="form-campo" id="labelFraccion">Fracción
           <select id="solFraccion">
             <option value="Día completo">Día completo</option>
-            <option value="Medio día (Mañana)">Medio día (Mañana)</option>
-            <option value="Medio día (Tarde)">Medio día (Tarde)</option>
+            <option value="Medio día (Mañana)">Medio día (mañana)</option>
+            <option value="Medio día (Tarde)">Medio día (tarde)</option>
           </select>
         </label>
       </div>
@@ -219,29 +449,114 @@
         <label class="form-campo">Fecha fin<input type="date" id="solFechaFin"></label>
       </div>
       <label class="form-campo">Notas (opcional)<input type="text" id="solNotas" placeholder="Ej: control médico"></label>
-      <button type="submit" class="refresh-btn" id="btnSolicitar" style="align-self:flex-start;">📩 Registrar solicitud</button>
+      <button type="submit" class="btn primario" id="btnSolicitar" style="align-self:flex-start;">Registrar solicitud</button>
     </form>
-    <div style="margin-top:20px; padding-top:16px; border-top:1px solid #e5e7eb;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <strong style="color:#1f2937; font-size:.9em;">Solicitudes registradas</strong>
-        <button type="button" class="refresh-btn" style="padding:4px 10px; font-size:.75em;" onclick="cargarListaSolicitudes()">🔄</button>
+    <div class="separador">
+      <div class="subtitulo-lista">
+        <span>Solicitudes registradas</span>
+        <button type="button" class="btn chico" onclick="cargarListaSolicitudes()">Actualizar</button>
       </div>
-      <div id="listaSolicitudes" style="display:flex; flex-direction:column; gap:6px; font-size:.85em;"></div>
+      <div id="listaSolicitudes" style="display:flex; flex-direction:column; gap:6px;"></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>🩺 Licencias Médicas</h2>
-    <div id="licenciaBanner" class="estado-banner" style="display:none; margin-bottom:16px;"></div>
+    <h2>Licencias médicas</h2>
+    <div id="licenciaBanner" class="estado-banner" style="display:none;"></div>
     <form class="form-solicitud" id="formLicencia" onsubmit="return enviarLicencia(event)">
       <div class="form-fila">
         <label class="form-campo">Fecha inicio<input type="date" id="licFechaInicio" required></label>
         <label class="form-campo">Fecha fin<input type="date" id="licFechaFin"></label>
       </div>
-      <button type="submit" class="refresh-btn" id="btnLicencia" style="align-self:flex-start; background:#0891b2;">🩺 Registrar licencia</button>
+      <button type="submit" class="btn primario" id="btnLicencia" style="align-self:flex-start;">Registrar licencia</button>
     </form>
   </div>
 
+</div>
+
+<div class="cfg-overlay" id="cfgPanel" aria-hidden="true">
+  <div class="cfg-top">
+    <h2>Configuración</h2>
+    <button class="btn-config" onclick="cerrarConfig()">Cerrar</button>
+  </div>
+  <div class="cfg-tabs" id="cfgTabs">
+    <button class="cfg-tab activa" data-sec="avisos">Avisos</button>
+    <button class="cfg-tab" data-sec="horarios">Horarios</button>
+    <button class="cfg-tab" data-sec="feriados">Feriados</button>
+    <button class="cfg-tab" data-sec="saldos">Saldos</button>
+    <button class="cfg-tab" data-sec="seguridad">Seguridad</button>
+    <button class="cfg-tab" data-sec="sistema">Sistema</button>
+    <button class="cfg-tab" data-sec="apariencia">Apariencia</button>
+  </div>
+  <div class="cfg-cuerpo">
+    <div id="cfgBanner" class="estado-banner" style="display:none;"></div>
+
+    <section class="cfg-seccion activa" data-sec="avisos">
+      <p class="cfg-desc">Correos y reglas de los avisos de olvido de marcaje. Nada se envía a dirección sin tu confirmación.</p>
+      <div id="cfgCamposAvisos"></div>
+      <div class="cfg-guardar"><button class="btn primario" onclick="guardarSeccion('avisos', this)">Guardar cambios</button></div>
+    </section>
+
+    <section class="cfg-seccion" data-sec="horarios">
+      <p class="cfg-desc">Horas en que se espera tu marcaje. Se usan para detectar olvidos (hora + margen).</p>
+      <div id="cfgCamposHorarios"></div>
+      <div class="cfg-guardar"><button class="btn primario" onclick="guardarSeccion('horarios', this)">Guardar cambios</button></div>
+    </section>
+
+    <section class="cfg-seccion" data-sec="feriados">
+      <p class="cfg-desc">Los feriados legales se cargan solos. Aquí puedes agregar un feriado (por ejemplo, un interferiado) o quitar uno que no aplique.</p>
+      <div class="fer-nav">
+        <button class="btn chico" onclick="cambiarAnioFeriados(-1)">‹</button>
+        <strong id="ferAnio">–</strong>
+        <button class="btn chico" onclick="cambiarAnioFeriados(1)">›</button>
+        <button class="btn chico" style="margin-left:auto;" onclick="operarFeriado('refrescar')">Actualizar legales</button>
+      </div>
+      <div class="fer-lista" id="ferLista"><div class="fer-fila">Cargando…</div></div>
+      <div class="cfg-subtitulo">Agregar feriado</div>
+      <div class="cfg-grid">
+        <div class="cfg-campo"><label class="titulo">Fecha</label><input type="date" id="ferNuevaFecha"></div>
+        <div class="cfg-campo"><label class="titulo">Descripción</label><input type="text" id="ferNuevaDesc" maxlength="100" placeholder="Ej: Interferiado"></div>
+      </div>
+      <button class="btn primario" onclick="agregarFeriadoUI(this)">Agregar feriado</button>
+    </section>
+
+    <section class="cfg-seccion" data-sec="saldos">
+      <p class="cfg-desc">Base para calcular tus saldos y la Ficha anual. Los días ya registrados no cambian.</p>
+      <div id="cfgCamposSaldos"></div>
+      <div class="cfg-guardar"><button class="btn primario" onclick="guardarSeccion('saldos', this)">Guardar cambios</button></div>
+    </section>
+
+    <section class="cfg-seccion" data-sec="seguridad">
+      <p class="cfg-desc">El PIN protege todo lo que envía correos o modifica datos. Queda guardado en cada dispositivo donde lo ingreses.</p>
+      <div class="cfg-subtitulo">Cambiar PIN</div>
+      <div class="cfg-grid">
+        <div class="cfg-campo"><label class="titulo">Nuevo PIN</label><input type="password" id="pinNuevo" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
+        <div class="cfg-campo"><label class="titulo">Repetir nuevo PIN</label><input type="password" id="pinNuevo2" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
+      </div>
+      <div class="cfg-campo"><div class="nota">Entre 4 y 8 dígitos. Se te pedirá el PIN actual si este dispositivo no lo tiene guardado.</div></div>
+      <button class="btn primario" onclick="cambiarPinUI(this)">Cambiar PIN</button>
+      <div class="cfg-subtitulo">Este dispositivo</div>
+      <div class="sis-fila"><div>PIN guardado en este navegador<div class="sub" id="pinEstadoLocal"></div></div>
+        <button class="btn chico" onclick="olvidarPinUI()">Olvidar PIN</button></div>
+    </section>
+
+    <section class="cfg-seccion" data-sec="sistema">
+      <p class="cfg-desc">Estado de las tareas automáticas y herramientas de mantención.</p>
+      <div id="sisEstado"></div>
+      <div class="cfg-subtitulo">Herramientas</div>
+      <div class="sis-fila"><div>Enviarme una notificación de prueba<div class="sub">Verifica que te llegan el correo y la alarma del calendario.</div></div>
+        <button class="btn chico" onclick="accionSistema('correoPrueba', this)">Probar</button></div>
+      <div class="sis-fila"><div>Analizar demora del correo del reloj<div class="sub" id="sisDemora">Ayuda a elegir el margen de los avisos.</div></div>
+        <button class="btn chico" onclick="accionSistema('analizarDemora', this)">Analizar</button></div>
+      <div class="sis-fila"><div>Recalcular alertas del año<div class="sub">Útil después de cambiar feriados o permisos antiguos.</div></div>
+        <button class="btn chico" onclick="accionSistema('recalcularAlertas', this)">Recalcular</button></div>
+    </section>
+
+    <section class="cfg-seccion" data-sec="apariencia">
+      <p class="cfg-desc">Color principal de la web. Se guarda solo en este dispositivo.</p>
+      <div class="temas" id="temas"></div>
+    </section>
+  </div>
 </div>
 
 <script>
@@ -258,15 +573,17 @@ const DIAS_SEMANA = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes",
 
 let fechaVista = new Date();
 let datosMarcajes = {};
-let diasTrackeados = new Set();
-let feriadosMap = new Map();
-let turnoDatesSet = new Set(); // "DD/MM/YYYY" -> respaldo/futuro, desde Finanzas Médicas
-let turnoInfoMap = new Map();  // "DD/MM/YYYY" -> {centro, horas, tipo}, desde Finanzas Médicas
-let licenciasSet = new Set();
-let diasAutorizadosMap = new Map(); // "DD/MM/YYYY" -> {tipo:'Administrativo'|'Vacaciones', fraccion, notas}
+let turnoDatesSet = new Set(); // "DD/MM/YYYY" desde Finanzas Médicas
+let turnoInfoMap = new Map();  // "DD/MM/YYYY" -> {centro, horas, tipo}
+// v4.1: estos tres vienen del Apps Script (?accion=mes), la misma lógica que genera las alertas
+let feriadosMap = new Map();    // "DD/MM/YYYY" -> descripción
+let especialesMap = new Map();  // "DD/MM/YYYY" -> {tipo, fraccion, notas, medioDia}
+let esperadosSet = new Set();   // días (hasta hoy) en que se espera marcaje
+let usarEsperados = false;
 
 async function fetchSheetTable(sheetId, sheetName) {
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  // headers=1: la fila 1 siempre es encabezado (evita que gviz "adivine" mal)
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(sheetName)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('No se pudo conectar a la planilla');
   const text = await res.text();
@@ -303,17 +620,14 @@ function valorFechaCelda(v) {
       const año = parseInt(numeros[0]);
       const mesIndex = parseInt(numeros[1]);
       const dia = parseInt(numeros[2]);
-      const diaPad = String(dia).padStart(2, '0');
-      const mesPad = String(mesIndex + 1).padStart(2, '0');
-      return `${diaPad}/${mesPad}/${año}`;
+      return `${String(dia).padStart(2, '0')}/${String(mesIndex + 1).padStart(2, '0')}/${año}`;
     }
   }
   return normalizarFecha(str);
 }
 
 function valorFechaISO(v) {
-  // Para la columna B de Finanzas Médicas, que suele venir en AAAA-MM-DD como texto,
-  // o como objeto Date de Sheets (mismo caso "Date(...)" que valorFechaCelda).
+  // Para la columna B de Finanzas Médicas: AAAA-MM-DD como texto, o Date de Sheets
   if (v === null || v === undefined || v === '') return '';
   const str = v.toString().trim();
   if (str.startsWith('Date(')) return valorFechaCelda(v);
@@ -324,107 +638,88 @@ function valorFechaISO(v) {
   return normalizarFecha(str);
 }
 
-async function cargarFeriados() {
-  feriadosMap = new Map();
-  try {
-    const tabla = await fetchSheetTable(SHEET_URL_ID, 'Configuración');
-    const filas = filaAValores(tabla);
-    // Los feriados empiezan en la fila 9 (índice 8): columna A=fecha, B=descripción
-    for (let i = 8; i < filas.length; i++) {
-      const fecha = valorFechaCelda(filas[i][0]);
-      const desc = (filas[i][1] || '').toString();
-      if (fecha) feriadosMap.set(fecha, desc);
-    }
-  } catch (e) {
-    console.log('Sin hoja de Configuración todavía:', e.message);
+function esFechaValida(f) {
+  return /^\d{2}\/\d{2}\/\d{4}$/.test(f || '');
+}
+
+/** Sigla y clase CSS de cada tipo de día especial */
+function metaTipo(tipo) {
+  switch (tipo) {
+    case 'Licencia médica':       return { sigla: 'L', clase: 'licencia' };
+    case 'Vacaciones':            return { sigla: 'V', clase: 'vacaciones' };
+    case 'Comisión/Capacitación': return { sigla: 'C', clase: 'comision' };
+    case 'Permiso sin goce':
+    case 'Otro permiso':          return { sigla: 'P', clase: 'permiso' };
+    default:                      return { sigla: 'A', clase: 'diaadmin' }; // Administrativo
   }
 }
 
-/**
- * Lee TODA tu planilla de Finanzas Médicas (client-side, vía gviz).
- * Requiere que "Finanzas Médicas" esté compartida como "Cualquiera con el
- * enlace - Lector", igual que tu planilla Monitor.
- */
+/** Turnos desde Finanzas Médicas (vía gviz). Devuelve {dates:Set, info:Map}. */
 async function cargarTurnosFinanzasMedicas() {
-  turnoDatesSet = new Set();
-  turnoInfoMap = new Map();
+  const dates = new Set();
+  const info = new Map();
   try {
     const tabla = await fetchSheetTable(SHEET_TURNOS_ID, HOJA_TURNOS);
-    const filas = filaAValores(tabla);
-    filas.forEach(fila => {
+    filaAValores(tabla).forEach(fila => {
       const fecha = valorFechaISO(fila[1]);
-      if (!fecha) return;
-      const centro = (fila[3] || '').toString();
-      const horas = parseFloat(fila[4]) || 0;
-      const tipo = (fila[5] || '').toString();
-      turnoDatesSet.add(fecha);
-      turnoInfoMap.set(fecha, { centro, horas, tipo });
+      if (!esFechaValida(fecha)) return;
+      dates.add(fecha);
+      info.set(fecha, {
+        centro: (fila[3] || '').toString(),
+        horas: parseFloat(fila[4]) || 0,
+        tipo: (fila[5] || '').toString()
+      });
     });
   } catch (e) {
     console.log('No se pudo cargar Finanzas Médicas:', e.message);
   }
+  return { dates, info };
 }
 
-async function cargarLicencias() {
-  licenciasSet = new Set();
-  try {
-    const tabla = await fetchSheetTable(SHEET_URL_ID, 'Licencias');
-    if (!tabla.cols || !tabla.cols[1] || tabla.cols[1].label !== 'Fecha Inicio') {
-      throw new Error('La hoja "Licencias" todavía no existe.');
-    }
-    const filas = filaAValores(tabla);
-    filas.forEach(fila => {
-      const fechaInicio = valorFechaCelda(fila[1]);
-      if (!fechaInicio) return;
-      const fechaFin = valorFechaCelda(fila[2]) || fechaInicio;
-      const [d1, m1, a1] = fechaInicio.split('/').map(Number);
-      const [d2, m2, a2] = fechaFin.split('/').map(Number);
-      let actual = new Date(a1, m1 - 1, d1);
-      const finDate = new Date(a2, m2 - 1, d2);
-      while (actual <= finDate) {
-        const fechaStr = `${String(actual.getDate()).padStart(2,'0')}/${String(actual.getMonth()+1).padStart(2,'0')}/${actual.getFullYear()}`;
-        licenciasSet.add(fechaStr);
-        actual.setDate(actual.getDate() + 1);
-      }
-    });
-  } catch (e) {
-    console.log('Sin hoja de Licencias todavía:', e.message);
-  }
+/** Feriados, días especiales y días esperados del mes, calculados por el Apps Script. */
+async function cargarDiasEspeciales(año, mesIdx) {
+  const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=mes&anio=${año}&mes=${mesIdx}`);
+  if (!data || !data.success) throw new Error((data && data.mensaje) || 'Respuesta inválida del Web App');
+  return {
+    feriados: new Map(Object.entries(data.feriados || {})),
+    especiales: new Map(Object.entries(data.especiales || {})),
+    esperados: new Set(data.esperados || [])
+  };
 }
 
-/**
- * Lee la hoja "Solicitudes" (días administrativos y vacaciones ya registrados)
- * y arma un mapa de cada fecha cubierta -> {tipo, fraccion, notas}, para que
- * el calendario los pinte como "autorizado" en vez de "falta de marcaje".
- */
-async function cargarDiasAutorizados() {
-  diasAutorizadosMap = new Map();
+/** Hoja Marcajes-Mes-Año (vía gviz). Devuelve {datos, existe}. */
+async function cargarHojaMarcajes(año, mesIdx) {
+  const datos = {};
   try {
-    const tabla = await fetchSheetTable(SHEET_URL_ID, 'Solicitudes');
-    if (!tabla.cols || !tabla.cols[1] || tabla.cols[1].label !== 'Tipo') {
-      throw new Error('La hoja "Solicitudes" todavía no existe.');
-    }
+    const tabla = await fetchSheetTable(SHEET_URL_ID, `Marcajes-${MESES[mesIdx]}-${año}`);
     const filas = filaAValores(tabla);
-    filas.forEach(fila => {
-      const tipo = (fila[1] || '').toString();
-      const fechaInicio = valorFechaCelda(fila[2]);
-      if (!fechaInicio) return;
-      const fechaFin = valorFechaCelda(fila[3]) || fechaInicio;
-      const fraccion = (fila[4] || '').toString();
-      const notas = (fila[7] || '').toString();
 
-      const [d1, m1, a1] = fechaInicio.split('/').map(Number);
-      const [d2, m2, a2] = fechaFin.split('/').map(Number);
-      let actual = new Date(a1, m1 - 1, d1);
-      const finDate = new Date(a2, m2 - 1, d2);
-      while (actual <= finDate) {
-        const fechaStr = `${String(actual.getDate()).padStart(2,'0')}/${String(actual.getMonth()+1).padStart(2,'0')}/${actual.getFullYear()}`;
-        diasAutorizadosMap.set(fechaStr, { tipo, fraccion, notas });
-        actual.setDate(actual.getDate() + 1);
-      }
+    // Si la hoja no existe, gviz devuelve la primera hoja: se detecta por el mes de las fechas
+    const primeraFechaValida = filas.map(f => valorFechaCelda(f[0])).find(esFechaValida);
+    if (primeraFechaValida) {
+      const [, mm, aa] = primeraFechaValida.split('/').map(Number);
+      if (mm - 1 !== mesIdx || aa !== año) throw new Error('La hoja pedida no existe todavía.');
+    } else {
+      throw new Error('Hoja sin datos.');
+    }
+
+    // Columnas: Fecha, Día Semana, Hora Entrada, Hora Salida, Tipo Turno, Horas Turno, Notas
+    filas.forEach(fila => {
+      const fecha = valorFechaCelda(fila[0]);
+      if (!esFechaValida(fecha)) return;
+      const horaEntrada = (fila[2] || '').toString().trim();
+      const horaSalida = (fila[3] || '').toString().trim();
+      const tipoTurno = (fila[4] || '').toString().trim();
+      datos[fecha] = {
+        entrada: !!horaEntrada, salida: !!horaSalida,
+        turno: !!tipoTurno, tipoTurno: tipoTurno, horasTurno: fila[5],
+        horaEntrada: horaEntrada, horaSalida: horaSalida
+      };
     });
+    return { datos, existe: true };
   } catch (e) {
-    console.log('Sin hoja de Solicitudes todavía:', e.message);
+    console.log('Sin hoja de Marcajes para este mes:', e.message);
+    return { datos, existe: false };
   }
 }
 
@@ -439,109 +734,24 @@ async function cargarMes() {
   document.getElementById('mesLabel').textContent = `${nombreMes} ${año}`;
   const banner = document.getElementById('estadoBanner');
   banner.className = 'estado-banner cargando';
-  banner.textContent = 'Cargando datos desde Google Sheets...';
+  banner.textContent = 'Cargando datos...';
   document.getElementById('statsRow').style.display = 'none';
   document.getElementById('calendario').innerHTML = '';
 
-  const datosLocal = {};
-  const trackeadosLocal = new Set();
-
-  const nombreHojaMarcajes = `Marcajes-${nombreMes}-${año}`;
-  const nombreHojaAlertas = `Alertas-${nombreMes}-${año}`;
-
-  let huboMarcajes = false;
-  let huboAlertas = false;
-
-  await cargarFeriados();
+  const [turnos, marcajes, especialesRes] = await Promise.all([
+    cargarTurnosFinanzasMedicas(),
+    cargarHojaMarcajes(año, mesIdx),
+    cargarDiasEspeciales(año, mesIdx).then(r => ({ ok: true, ...r }), e => ({ ok: false, error: e }))
+  ]);
   if (miToken !== cargaMesToken) return;
 
-  await cargarLicencias();
-  if (miToken !== cargaMesToken) return;
-
-  await cargarDiasAutorizados();
-  if (miToken !== cargaMesToken) return;
-
-  await cargarTurnosFinanzasMedicas();
-  if (miToken !== cargaMesToken) return;
-
-  try {
-    const tablaMarcajes = await fetchSheetTable(SHEET_URL_ID, nombreHojaMarcajes);
-    if (miToken !== cargaMesToken) return;
-    const filas = filaAValores(tablaMarcajes);
-
-    const primeraFechaValida = filas.map(f => valorFechaCelda(f[0])).find(f => !!f);
-    if (primeraFechaValida) {
-      const partes = primeraFechaValida.split('/');
-      const mesDevuelto = parseInt(partes[1], 10) - 1;
-      const anioDevuelto = parseInt(partes[2], 10);
-      if (mesDevuelto !== mesIdx || anioDevuelto !== año) {
-        throw new Error(`Google devolvió datos de otra hoja — la hoja pedida no existe todavía.`);
-      }
-    }
-
-    // Columnas: Fecha, Día Semana, Hora Entrada, Hora Salida, Tipo Turno, Horas Turno, Notas
-    filas.forEach(fila => {
-      const fecha = valorFechaCelda(fila[0]);
-      if (!fecha) return;
-
-      const horaEntrada = (fila[2] || '').toString().trim();
-      const horaSalida = (fila[3] || '').toString().trim();
-      const tipoTurno = (fila[4] || '').toString().trim();
-      const horasTurno = fila[5];
-
-      datosLocal[fecha] = {
-        entrada: !!horaEntrada, salida: !!horaSalida,
-        turno: !!tipoTurno, tipoTurno: tipoTurno, horasTurno: horasTurno,
-        horaEntrada: horaEntrada, horaSalida: horaSalida
-      };
-      trackeadosLocal.add(fecha);
-    });
-    huboMarcajes = true;
-  } catch (e) {
-    console.log('Sin hoja de Marcajes para este mes:', e.message);
-  }
-  if (miToken !== cargaMesToken) return;
-
-  try {
-    const tablaAlertas = await fetchSheetTable(SHEET_URL_ID, nombreHojaAlertas);
-    if (miToken !== cargaMesToken) return;
-    const filas = filaAValores(tablaAlertas);
-
-    const primeraAlertaValida = filas.map(f => normalizarFecha((f[2] || '').toString().split(' (')[0].trim())).find(f => f && f.includes('/'));
-    if (primeraAlertaValida) {
-      const partes = primeraAlertaValida.split('/');
-      const mesDevuelto = parseInt(partes[1], 10) - 1;
-      const anioDevuelto = parseInt(partes[2], 10);
-      if (mesDevuelto !== mesIdx || anioDevuelto !== año) {
-        throw new Error(`Google devolvió Alertas de otro mes — la hoja pedida no existe todavía.`);
-      }
-    }
-
-    filas.forEach(fila => {
-      const tipoAlerta = (fila[1] || '').toString();
-      const diaCompleto = (fila[2] || '').toString();
-      const accion = (fila[4] || '').toString();
-      if (!diaCompleto) return;
-
-      const fecha = normalizarFecha(diaCompleto.split(' (')[0].trim());
-      trackeadosLocal.add(fecha);
-
-      if (!datosLocal[fecha]) {
-        datosLocal[fecha] = { entrada: false, salida: false, turno: false, tipoTurno: '', horasTurno: '', horaEntrada: '', horaSalida: '' };
-      }
-      if (tipoAlerta.includes('TURNO') || accion.includes('TURNO')) {
-        datosLocal[fecha].turno = true;
-      }
-    });
-    huboAlertas = true;
-  } catch (e) {
-    console.log('Sin hoja de Alertas para este mes:', e.message);
-  }
-  if (miToken !== cargaMesToken) return;
+  turnoDatesSet = turnos.dates;
+  turnoInfoMap = turnos.info;
+  const datosLocal = marcajes.datos;
 
   // Turnos planificados (Finanzas Médicas) del mes en vista, incluye días futuros
   turnoDatesSet.forEach(fecha => {
-    const [dK, mK, aK] = fecha.split('/').map(Number);
+    const [, mK, aK] = fecha.split('/').map(Number);
     if (aK !== año || (mK - 1) !== mesIdx) return;
     if (!datosLocal[fecha]) {
       const info = turnoInfoMap.get(fecha);
@@ -553,27 +763,56 @@ async function cargarMes() {
     } else {
       datosLocal[fecha].turno = true;
     }
-    trackeadosLocal.add(fecha);
   });
 
-  if (miToken !== cargaMesToken) return;
+  if (especialesRes.ok) {
+    feriadosMap = especialesRes.feriados;
+    especialesMap = especialesRes.especiales;
+    esperadosSet = especialesRes.esperados;
+  } else {
+    feriadosMap = new Map();
+    especialesMap = new Map();
+    esperadosSet = new Set();
+  }
 
+  const hoy = new Date();
+  const esMesActual = hoy.getFullYear() === año && hoy.getMonth() === mesIdx;
+  usarEsperados = especialesRes.ok && (marcajes.existe || esMesActual);
   datosMarcajes = datosLocal;
-  diasTrackeados = trackeadosLocal;
 
-  if (!huboMarcajes && !huboAlertas) {
+  if (!especialesRes.ok) {
     banner.className = 'estado-banner error';
-    banner.textContent = `⚠️ No hay datos para ${nombreMes} ${año}. Aún no se ha ejecutado el script en ese mes.`;
+    banner.textContent = `No se pudieron cargar feriados y permisos (${especialesRes.error.message}). Solo se muestran los marcajes registrados.`;
+  } else if (!marcajes.existe && !esMesActual) {
+    banner.className = 'estado-banner error';
+    banner.textContent = `No hay marcajes registrados para ${nombreMes} ${año}.`;
   } else {
     banner.className = 'estado-banner ok';
-    const ahora = new Date();
-    banner.textContent = `✓ Datos actualizados · ${ahora.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'})}`;
+    banner.textContent = `Actualizado a las ${hoy.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'})}`;
   }
 
   renderizarCalendario(año, mesIdx);
-  renderizarStats();
+  renderizarStats(año, mesIdx);
   cargarSaldos(año);
   cargarListaSolicitudes();
+}
+
+function crearTickets(info, colorFaltante) {
+  const tickets = document.createElement('div');
+  tickets.className = 'tickets';
+  const t1 = document.createElement('div');
+  t1.className = 'ticket ' + (info.entrada ? 'verde' : colorFaltante);
+  const t2 = document.createElement('div');
+  t2.className = 'ticket ' + (info.salida ? 'verde' : colorFaltante);
+  tickets.appendChild(t1); tickets.appendChild(t2);
+  return tickets;
+}
+
+function agregarMarca(div, texto) {
+  const marca = document.createElement('div');
+  marca.className = 'estrella' + (texto === 'T' ? ' turno' : '');
+  marca.textContent = texto;
+  div.appendChild(marca);
 }
 
 function renderizarCalendario(año, mesIdx) {
@@ -597,68 +836,58 @@ function renderizarCalendario(año, mesIdx) {
     const fechaStr = `${String(dia).padStart(2,'0')}/${String(mesIdx+1).padStart(2,'0')}/${año}`;
     const div = document.createElement('div');
     div.className = 'dia';
-
     if (esMesActual && dia === hoy.getDate()) div.classList.add('hoy');
 
-    const info = datosMarcajes[fechaStr];
-    const trackeado = diasTrackeados.has(fechaStr);
     const fechaDelDia = new Date(año, mesIdx, dia);
     const esFuturo = fechaDelDia > hoy && !(esMesActual && dia === hoy.getDate());
+    const info = datosMarcajes[fechaStr];
+    const tieneMarcaje = !!(info && (info.entrada || info.salida));
+    const especial = especialesMap.get(fechaStr);
+    const descFeriado = feriadosMap.get(fechaStr);
 
     const numero = document.createElement('div');
     numero.className = 'dia-numero';
     numero.textContent = dia;
     div.appendChild(numero);
 
-    const esLicencia = licenciasSet.has(fechaStr);
-    const infoAutorizado = diasAutorizadosMap.get(fechaStr);
+    if (especial && !especial.medioDia) {
+      // 1) Día libre completo: licencia, administrativo, vacaciones, comisión, permiso
+      const meta = metaTipo(especial.tipo);
+      div.classList.add(meta.clase);
+      agregarMarca(div, meta.sigla);
+      if (tieneMarcaje) div.appendChild(crearTickets(info, 'gris'));
+      div.onclick = () => mostrarDetalleEspecial(fechaStr, especial.tipo,
+        especial.notas ? `Notas: ${especial.notas}` : '', info, esFuturo);
 
-    if (esLicencia) {
-      div.classList.add('licencia');
-      const marca = document.createElement('div');
-      marca.className = 'estrella'; marca.textContent = '🩺';
-      div.appendChild(marca);
-      div.onclick = () => mostrarDetalleLicencia(fechaStr);
-    } else if (infoAutorizado) {
-      const esVacaciones = infoAutorizado.tipo === 'Vacaciones';
-      div.classList.add(esVacaciones ? 'vacaciones' : 'diaadmin');
-      const marca = document.createElement('div');
-      marca.className = 'estrella'; marca.textContent = esVacaciones ? '🏖️' : '🟡';
-      div.appendChild(marca);
-      div.onclick = () => mostrarDetalleAutorizado(fechaStr, infoAutorizado);
-    } else if (trackeado && !esFuturo) {
-      const tickets = document.createElement('div');
-      tickets.className = 'tickets';
-      const t1 = document.createElement('div');
-      t1.className = 'ticket ' + (info.entrada ? 'verde' : 'rojo');
-      const t2 = document.createElement('div');
-      t2.className = 'ticket ' + (info.salida ? 'verde' : 'rojo');
-      tickets.appendChild(t1); tickets.appendChild(t2);
-      div.appendChild(tickets);
+    } else if (descFeriado) {
+      // 2) Feriado
+      div.classList.add('feriado');
+      agregarMarca(div, 'F');
+      if (tieneMarcaje) div.appendChild(crearTickets(info, 'gris'));
+      div.onclick = () => mostrarDetalleEspecial(fechaStr, `Feriado · ${descFeriado}`, '', info, esFuturo);
 
-      if (info.turno) {
-        const estrella = document.createElement('div');
-        estrella.className = 'estrella'; estrella.textContent = '⭐';
-        div.appendChild(estrella);
-      }
-      div.onclick = () => mostrarDetalle(fechaStr, info);
-    } else if (trackeado && esFuturo) {
-      if (info.turno) {
-        const estrella = document.createElement('div');
-        estrella.className = 'estrella'; estrella.textContent = '⭐';
-        div.appendChild(estrella);
-      }
+    } else if (esFuturo) {
+      // 3) Día futuro: solo turno planificado y/o medio día ya registrado
       div.classList.add('no-trackeado');
-      div.onclick = () => mostrarDetalleFuturo(fechaStr, info);
+      if (info && info.turno) agregarMarca(div, 'T');
+      if (especial && especial.medioDia) agregarBadgeMedio(div);
+      if ((info && info.turno) || especial) {
+        div.onclick = () => mostrarDetalleFuturo(fechaStr, info || {}, especial);
+      }
+
     } else {
-      div.classList.add('no-trackeado');
-      const descFeriado = feriadosMap.get(fechaStr);
-      if (descFeriado) {
-        div.classList.add('feriado');
-        const marca = document.createElement('div');
-        marca.className = 'estrella'; marca.textContent = '🎉';
-        div.appendChild(marca);
-        div.onclick = () => mostrarDetalleFeriado(fechaStr, descFeriado);
+      // 4) Día pasado o de hoy
+      const esperado = usarEsperados && esperadosSet.has(fechaStr);
+      const conTurno = !!(info && info.turno);
+      if (esperado || tieneMarcaje || conTurno) {
+        const infoDia = info || { entrada: false, salida: false, turno: false, tipoTurno: '', horasTurno: '', horaEntrada: '', horaSalida: '' };
+        const esMedio = !!(especial && especial.medioDia);
+        div.appendChild(crearTickets(infoDia, esMedio ? 'amarillo' : 'rojo'));
+        if (conTurno) agregarMarca(div, 'T');
+        if (esMedio) { div.classList.add('medio-dia'); agregarBadgeMedio(div); }
+        div.onclick = () => mostrarDetalle(fechaStr, infoDia, especial);
+      } else {
+        div.classList.add('no-trackeado');
       }
     }
 
@@ -666,66 +895,100 @@ function renderizarCalendario(año, mesIdx) {
   }
 }
 
-function renderizarStats() {
-  let completo = 0, parcial = 0, faltante = 0, turnos = 0;
+function agregarBadgeMedio(div) {
+  const b = document.createElement('div');
+  b.className = 'badge-medio';
+  b.textContent = '½';
+  div.appendChild(b);
+}
+
+function renderizarStats(año, mesIdx) {
+  let completo = 0, parcial = 0, faltante = 0, turnos = 0, libres = 0;
   const hoy = new Date();
+  const diasEnMes = new Date(año, mesIdx + 1, 0).getDate();
 
-  diasTrackeados.forEach(fecha => {
+  for (let dia = 1; dia <= diasEnMes; dia++) {
+    const fecha = `${String(dia).padStart(2,'0')}/${String(mesIdx+1).padStart(2,'0')}/${año}`;
+    const fechaDelDia = new Date(año, mesIdx, dia);
+    const diaSemana = fechaDelDia.getDay();
+    const esFuturo = fechaDelDia > hoy && !(año === hoy.getFullYear() && mesIdx === hoy.getMonth() && dia === hoy.getDate());
     const info = datosMarcajes[fecha];
-    if (!info) return;
-    if (licenciasSet.has(fecha)) return;
-    if (diasAutorizadosMap.has(fecha)) return; // día administrativo o vacaciones: no cuenta como falta
+    const especial = especialesMap.get(fecha);
+    const esFeriado = feriadosMap.has(fecha);
 
-    const [d, m, a] = fecha.split('/').map(Number);
-    const fechaDelDia = new Date(a, m - 1, d);
-    const esFuturo = fechaDelDia > hoy && !(a === hoy.getFullYear() && (m - 1) === hoy.getMonth() && d === hoy.getDate());
-    if (esFuturo) {
-      if (info.turno) turnos++;
-      return;
-    }
+    if (info && info.turno) turnos++;
 
-    if (info.entrada && info.salida) completo++;
-    else if (info.entrada || info.salida) parcial++;
+    // Días libres o con permiso: todo el mes (feriados solo si caen lunes a viernes)
+    if (especial || (esFeriado && diaSemana >= 1 && diaSemana <= 5)) { libres++; continue; }
+    if (esFuturo) continue;
+
+    const tieneMarcaje = !!(info && (info.entrada || info.salida));
+    const esperado = usarEsperados && esperadosSet.has(fecha);
+    if (!esperado && !tieneMarcaje && !(info && info.turno)) continue;
+
+    if (info && info.entrada && info.salida) completo++;
+    else if (tieneMarcaje) parcial++;
     else faltante++;
-    if (info.turno) turnos++;
-  });
+  }
 
   document.getElementById('statCompleto').textContent = completo;
   document.getElementById('statParcial').textContent = parcial;
   document.getElementById('statFaltante').textContent = faltante;
   document.getElementById('statTurnos').textContent = turnos;
+  document.getElementById('statLibres').textContent = libres;
   document.getElementById('statsRow').style.display = 'grid';
 }
 
 let fechaSeleccionadaDetalle = null;
 
-function mostrarDetalle(fecha, info) {
+function textoMarcaje(registrado, hora, colorFaltante) {
+  if (registrado) return `registrada${hora ? ' a las ' + hora : ''}`;
+  return colorFaltante === 'amarillo' ? 'sin marcaje (cubierto por el medio día libre)' : 'faltante';
+}
+
+function mostrarDetalle(fecha, info, especial) {
   fechaSeleccionadaDetalle = fecha;
   const panel = document.getElementById('detallePanel');
   const [d, m, a] = fecha.split('/');
-  const fechaObj = new Date(a, m - 1, d);
-  const nombreDia = DIAS_SEMANA[fechaObj.getDay()];
+  const nombreDia = DIAS_SEMANA[new Date(a, m - 1, d).getDay()];
+  const esMedio = !!(especial && especial.medioDia);
+  const colorFaltante = esMedio ? 'amarillo' : 'rojo';
 
-  const textoEntrada = info.entrada ? `✓ Registrada${info.horaEntrada ? ' a las ' + info.horaEntrada : ''}` : '❌ Faltante';
-  const textoSalida = info.salida ? `✓ Registrada${info.horaSalida ? ' a las ' + info.horaSalida : ''}` : '❌ Faltante';
-
-  document.getElementById('detalleTitulo').textContent = `📅 ${fecha} - ${nombreDia}`;
-  document.getElementById('detalleEntrada').textContent = `Entrada: ${textoEntrada}`;
-  document.getElementById('detalleSalida').textContent = `Salida: ${textoSalida}`;
+  document.getElementById('detalleTitulo').textContent = `${nombreDia} ${fecha}`;
+  document.getElementById('detalleEntrada').textContent = `Entrada: ${textoMarcaje(info.entrada, info.horaEntrada, colorFaltante)}`;
+  document.getElementById('detalleSalida').textContent = `Salida: ${textoMarcaje(info.salida, info.horaSalida, colorFaltante)}`;
 
   let textoTurno;
   if (info.tipoTurno) {
-    textoTurno = `⭐ ${info.tipoTurno}${info.horasTurno ? ' · ' + info.horasTurno + 'h' : ''}`;
+    textoTurno = `Turno: ${info.tipoTurno}${info.horasTurno ? ' · ' + info.horasTurno + 'h' : ''}`;
   } else if (info.turno) {
-    textoTurno = '⭐ Turno registrado en Finanzas Médicas (sin correo de marcaje detectado ese día)';
+    textoTurno = 'Turno registrado en Finanzas Médicas (sin correo de marcaje detectado ese día)';
   } else {
     textoTurno = 'Sin turno ese día';
+  }
+  if (esMedio) {
+    textoTurno += ` · ${especial.tipo} — ${especial.fraccion}${especial.notas ? ' (' + especial.notas + ')' : ''}`;
   }
   document.getElementById('detalleTurno').textContent = textoTurno;
 
   document.getElementById('bloqueCorregir').style.display = 'block';
   document.getElementById('formCorregirWrap').style.display = 'none';
   panel.style.display = 'block';
+}
+
+/** Detalle de un día libre (feriado o permiso de día completo). */
+function mostrarDetalleEspecial(fecha, titulo, notas, info, esFuturo) {
+  fechaSeleccionadaDetalle = esFuturo ? null : fecha;
+  const tieneMarcaje = !!(info && (info.entrada || info.salida));
+  document.getElementById('detalleTitulo').textContent = `${fecha} · ${titulo}`;
+  document.getElementById('detalleEntrada').textContent = notas || '';
+  document.getElementById('detalleSalida').textContent = tieneMarcaje
+    ? `Marcaje informativo — Entrada: ${info.horaEntrada || '—'} · Salida: ${info.horaSalida || '—'}`
+    : '';
+  document.getElementById('detalleTurno').textContent = 'No aplica marcaje: no se cuenta como falta.';
+  document.getElementById('bloqueCorregir').style.display = esFuturo ? 'none' : 'block';
+  document.getElementById('formCorregirWrap').style.display = 'none';
+  document.getElementById('detallePanel').style.display = 'block';
 }
 
 function mostrarFormularioCorregir() {
@@ -740,65 +1003,36 @@ async function enviarCorreccionMarcaje() {
 
   const btn = document.getElementById('btnCorregir');
   btn.disabled = true;
-  btn.textContent = '⏳ Guardando...';
+  btn.textContent = 'Guardando…';
 
   try {
     const params = new URLSearchParams({ accion: 'corregirMarcaje', fecha: fechaSeleccionadaDetalle, tipo, hora });
-    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?${params.toString()}`);
+    const data = await llamarConPin(params);
     if (data.success) {
-      alert('✓ ' + data.mensaje);
+      alert(data.mensaje);
       document.getElementById('formCorregirWrap').style.display = 'none';
       await cargarMes();
     } else {
-      alert('⚠️ ' + (data.mensaje || 'No se pudo guardar la corrección'));
+      alert(data.mensaje || 'No se pudo guardar la corrección');
     }
   } catch (e) {
-    alert('⚠️ ' + e.message);
+    alert(e.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = '💾 Guardar corrección';
+    btn.textContent = 'Guardar corrección';
   }
 }
 
-function mostrarDetalleAutorizado(fecha, info) {
+function mostrarDetalleFuturo(fecha, info, especial) {
   fechaSeleccionadaDetalle = null;
-  const emoji = info.tipo === 'Vacaciones' ? '🏖️' : '🟡';
-  document.getElementById('detalleTitulo').textContent = `${emoji} ${fecha}`;
-  document.getElementById('detalleEntrada').textContent = `${info.tipo}${info.fraccion && info.fraccion !== 'Día completo' ? ' — ' + info.fraccion : ''}`;
-  document.getElementById('detalleSalida').textContent = info.notas ? `Notas: ${info.notas}` : '';
-  document.getElementById('detalleTurno').textContent = 'No se contabiliza como falta de marcaje (día autorizado).';
-  document.getElementById('bloqueCorregir').style.display = 'none';
-  document.getElementById('detallePanel').style.display = 'block';
-}
-
-function mostrarDetalleLicencia(fecha) {
-  fechaSeleccionadaDetalle = null;
-  document.getElementById('detalleTitulo').textContent = `🩺 ${fecha}`;
-  document.getElementById('detalleEntrada').textContent = 'Licencia médica registrada.';
-  document.getElementById('detalleSalida').textContent = 'No aplicaba marcaje este día.';
-  document.getElementById('detalleTurno').textContent = '';
-  document.getElementById('bloqueCorregir').style.display = 'none';
-  document.getElementById('detallePanel').style.display = 'block';
-}
-
-function mostrarDetalleFuturo(fecha, info) {
-  fechaSeleccionadaDetalle = null;
-  document.getElementById('detalleTitulo').textContent = `📅 ${fecha}`;
+  document.getElementById('detalleTitulo').textContent = `${fecha}`;
   document.getElementById('detalleEntrada').textContent = 'Este día aún no ocurre.';
-  document.getElementById('detalleSalida').textContent = '';
-  document.getElementById('detalleTurno').textContent = info.turno
-    ? `⭐ Turno planificado${info.tipoTurno ? ' — ' + info.tipoTurno : ''} (según Finanzas Médicas)`
+  document.getElementById('detalleSalida').textContent = especial
+    ? `${especial.tipo} — ${especial.fraccion}${especial.notas ? ' (' + especial.notas + ')' : ''}`
     : '';
-  document.getElementById('bloqueCorregir').style.display = 'none';
-  document.getElementById('detallePanel').style.display = 'block';
-}
-
-function mostrarDetalleFeriado(fecha, desc) {
-  fechaSeleccionadaDetalle = null;
-  document.getElementById('detalleTitulo').textContent = `🎉 ${fecha}`;
-  document.getElementById('detalleEntrada').textContent = `Feriado: ${desc}`;
-  document.getElementById('detalleSalida').textContent = '';
-  document.getElementById('detalleTurno').textContent = 'No aplicaba marcaje.';
+  document.getElementById('detalleTurno').textContent = info.turno
+    ? `Turno planificado${info.tipoTurno ? ' — ' + info.tipoTurno : ''} (según Finanzas Médicas)`
+    : '';
   document.getElementById('bloqueCorregir').style.display = 'none';
   document.getElementById('detallePanel').style.display = 'block';
 }
@@ -833,13 +1067,13 @@ function llamarWebAppJSONP(url) {
 
 async function actualizarDesdeGmail() {
   if (WEB_APP_URL.startsWith('PEGA_AQUI') || !WEB_APP_URL) {
-    alert('⚠️ Falta configurar la URL del Web App (constante WEB_APP_URL).');
+    alert('Falta configurar la URL del Web App (constante WEB_APP_URL).');
     return;
   }
   const btn = document.getElementById('btnGmail');
   const banner = document.getElementById('estadoBanner');
   btn.disabled = true;
-  btn.textContent = '⏳ Buscando en Gmail...';
+  btn.textContent = 'Buscando…';
   banner.className = 'estado-banner cargando';
   banner.textContent = 'Buscando nuevos correos de marcaje en Gmail... esto puede tardar unos segundos.';
 
@@ -847,19 +1081,20 @@ async function actualizarDesdeGmail() {
     const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=actualizar`);
     if (data.success) {
       banner.className = 'estado-banner ok';
-      banner.textContent = '✓ ' + (data.mensaje || 'Búsqueda en Gmail completada.') + ' Recargando calendario...';
+      banner.textContent = (data.mensaje || 'Búsqueda en Gmail completada.') + ' Recargando calendario…';
+      cargarAvisos();
       await cargarMes();
     } else {
       banner.className = 'estado-banner error';
-      banner.textContent = '⚠️ ' + (data.mensaje || 'Error al actualizar');
+      banner.textContent = (data.mensaje || 'Error al actualizar');
     }
   } catch (e) {
     banner.className = 'estado-banner error';
-    banner.textContent = '⚠️ ' + e.message;
+    banner.textContent = e.message;
     console.error(e);
   } finally {
     btn.disabled = false;
-    btn.textContent = '📧 Buscar en Gmail ahora';
+    btn.textContent = 'Buscar en Gmail';
   }
 }
 
@@ -879,14 +1114,14 @@ async function cargarSaldos(anio) {
     document.getElementById('saldoAdminNum').textContent = '–';
     document.getElementById('saldoVacNum').textContent = '–';
     banner.className = 'estado-banner error';
-    banner.textContent = '⚠️ No se pudo cargar el saldo: ' + e.message;
+    banner.textContent = 'No se pudo cargar el saldo: ' + e.message;
     banner.style.display = 'block';
   }
 }
 
 function actualizarCamposSolicitud() {
   const tipo = document.getElementById('solTipo').value;
-  document.getElementById('labelFraccion').style.display = tipo === 'Administrativo' ? 'block' : 'none';
+  document.getElementById('labelFraccion').style.display = tipo !== 'Vacaciones' ? 'block' : 'none';
 }
 
 function isoADDMMYYYY(iso) {
@@ -910,67 +1145,78 @@ async function enviarSolicitud(event) {
 
   const fechaInicio = isoADDMMYYYY(fechaInicioRaw);
   const fechaFin = isoADDMMYYYY(fechaFinRaw);
-  const fraccion = tipo === 'Administrativo' ? fraccionSel : 'Día completo';
+  const fraccion = tipo !== 'Vacaciones' ? fraccionSel : 'Día completo';
 
   btn.disabled = true;
-  btn.textContent = '⏳ Enviando...';
+  btn.textContent = 'Enviando…';
   banner.style.display = 'block';
   banner.className = 'estado-banner cargando';
   banner.textContent = 'Registrando solicitud...';
 
   try {
     const params = new URLSearchParams({ accion: 'solicitar', tipo, fechaInicio, fechaFin, fraccion, notas });
-    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?${params.toString()}`);
+    const data = await llamarConPin(params);
     if (data.success) {
       banner.className = 'estado-banner ok';
-      banner.textContent = '✓ ' + data.mensaje;
+      banner.textContent = data.mensaje;
       document.getElementById('saldoAdminNum').textContent = data.saldoAdmin;
       document.getElementById('saldoVacNum').textContent = data.saldoVacaciones;
       document.getElementById('formSolicitud').reset();
       actualizarCamposSolicitud();
     } else {
       banner.className = 'estado-banner error';
-      banner.textContent = '⚠️ ' + (data.mensaje || 'Error al registrar la solicitud');
+      banner.textContent = (data.mensaje || 'Error al registrar la solicitud');
     }
   } catch (e) {
     banner.className = 'estado-banner error';
-    banner.textContent = '⚠️ ' + e.message;
+    banner.textContent = e.message;
   } finally {
     btn.disabled = false;
-    btn.textContent = '📩 Registrar solicitud';
+    btn.textContent = 'Registrar solicitud';
   }
 
-  await cargarListaSolicitudes();
+  await cargarMes(); // refresca calendario, saldos y lista
   return false;
 }
 
 async function cargarListaSolicitudes() {
   const cont = document.getElementById('listaSolicitudes');
   const anio = fechaVista.getFullYear();
-  cont.innerHTML = '<span style="color:#9ca3af;">Cargando...</span>';
+  cont.innerHTML = '<span style="color:var(--text-3); font-size:.82em;">Cargando…</span>';
   if (WEB_APP_URL.startsWith('PEGA_AQUI') || !WEB_APP_URL) { cont.innerHTML = ''; return; }
 
   try {
     const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=listarSolicitudes&anio=${anio}`);
     if (!data.success || !data.solicitudes || data.solicitudes.length === 0) {
-      cont.innerHTML = '<span style="color:#9ca3af;">Sin solicitudes registradas este año.</span>';
+      cont.innerHTML = '<span style="color:var(--text-3); font-size:.82em;">Sin solicitudes registradas este año.</span>';
       return;
     }
     cont.innerHTML = '';
     data.solicitudes.forEach(s => {
       const fila = document.createElement('div');
-      fila.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#f9fafb; padding:8px 10px; border-radius:8px; border:1px solid #e5e7eb;';
+      fila.className = 'fila-solicitud';
       const rango = s.fechaFin && s.fechaFin !== s.fechaInicio ? `${s.fechaInicio} al ${s.fechaFin}` : s.fechaInicio;
-      fila.innerHTML = `<span>${s.tipo === 'Administrativo' ? '🟡' : '🟢'} ${s.tipo} · ${rango} · ${s.dias} día(s)${s.fraccion && s.fraccion !== 'Día completo' ? ' (' + s.fraccion + ')' : ''}</span>`;
+      const meta = metaTipo(s.tipo);
+      const esMedio = s.fraccion && s.fraccion !== 'Día completo';
+      const info = document.createElement('span');
+      info.className = 'info';
+      const chip = document.createElement('span');
+      chip.className = 'sigla ' + (esMedio ? 'medio' : meta.clase);
+      chip.textContent = esMedio ? '½' : meta.sigla;
+      const spanTxt = document.createElement('span');
+      spanTxt.textContent = `${s.tipo} · ${rango} · ${s.dias} día(s)${esMedio ? ' (' + s.fraccion.toLowerCase() + ')' : ''}`;
+      info.appendChild(chip);
+      info.appendChild(spanTxt);
+      fila.appendChild(info);
       const btnDel = document.createElement('button');
-      btnDel.type = 'button'; btnDel.textContent = '🗑️'; btnDel.title = 'Eliminar esta solicitud';
-      btnDel.style.cssText = 'border:none; background:none; cursor:pointer; font-size:1em; padding:2px 6px;';
+      btnDel.type = 'button'; btnDel.textContent = 'Eliminar'; btnDel.title = 'Eliminar esta solicitud';
+      btnDel.className = 'btn-eliminar';
       btnDel.onclick = () => eliminarSolicitudUI(s.marcaTemporal);
       fila.appendChild(btnDel);
       cont.appendChild(fila);
     });
   } catch (e) {
-    cont.innerHTML = '<span style="color:#991b1b;">⚠️ No se pudo cargar la lista.</span>';
+    cont.innerHTML = '<span style="color:var(--bad); font-size:.82em;">No se pudo cargar la lista.</span>';
   }
 }
 
@@ -983,20 +1229,20 @@ async function eliminarSolicitudUI(marcaTemporal) {
 
   try {
     const params = new URLSearchParams({ accion: 'eliminarSolicitud', marcaTemporal });
-    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?${params.toString()}`);
+    const data = await llamarConPin(params);
     if (data.success) {
       banner.className = 'estado-banner ok';
-      banner.textContent = '✓ ' + data.mensaje;
+      banner.textContent = data.mensaje;
       if (data.saldoAdmin !== undefined) document.getElementById('saldoAdminNum').textContent = data.saldoAdmin;
       if (data.saldoVacaciones !== undefined) document.getElementById('saldoVacNum').textContent = data.saldoVacaciones;
-      await cargarListaSolicitudes();
+      await cargarMes();
     } else {
       banner.className = 'estado-banner error';
-      banner.textContent = '⚠️ ' + (data.mensaje || 'No se pudo eliminar');
+      banner.textContent = (data.mensaje || 'No se pudo eliminar');
     }
   } catch (e) {
     banner.className = 'estado-banner error';
-    banner.textContent = '⚠️ ' + e.message;
+    banner.textContent = e.message;
   }
 }
 
@@ -1013,28 +1259,29 @@ async function enviarLicencia(event) {
   const fechaFin = isoADDMMYYYY(fechaFinRaw);
 
   btn.disabled = true;
-  btn.textContent = '⏳ Enviando...';
+  btn.textContent = 'Enviando…';
   banner.style.display = 'block';
   banner.className = 'estado-banner cargando';
   banner.textContent = 'Registrando licencia médica...';
 
   try {
     const params = new URLSearchParams({ accion: 'licencia', fechaInicio, fechaFin });
-    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?${params.toString()}`);
+    const data = await llamarConPin(params);
     if (data.success) {
       banner.className = 'estado-banner ok';
-      banner.textContent = '✓ ' + data.mensaje;
+      banner.textContent = data.mensaje;
       document.getElementById('formLicencia').reset();
+      cargarMes();
     } else {
       banner.className = 'estado-banner error';
-      banner.textContent = '⚠️ ' + (data.mensaje || 'Error al registrar la licencia');
+      banner.textContent = (data.mensaje || 'Error al registrar la licencia');
     }
   } catch (e) {
     banner.className = 'estado-banner error';
-    banner.textContent = '⚠️ ' + e.message;
+    banner.textContent = e.message;
   } finally {
     btn.disabled = false;
-    btn.textContent = '🩺 Registrar licencia';
+    btn.textContent = 'Registrar licencia';
   }
   return false;
 }
@@ -1046,8 +1293,623 @@ function cambiarMes(delta) {
   cargarMes();
 }
 
+// ======================================================
+// PIN (se pide una vez y queda guardado en este navegador)
+// ======================================================
+const CLAVE_PIN = 'monitorMarcajePin';
+
+function leerPinGuardado() {
+  try { return localStorage.getItem(CLAVE_PIN) || ''; } catch (e) { return pinMemoria || ''; }
+}
+let pinMemoria = '';
+function guardarPin(pin) {
+  pinMemoria = pin;
+  try { localStorage.setItem(CLAVE_PIN, pin); } catch (e) { /* modo privado: solo en memoria */ }
+}
+function borrarPin() {
+  pinMemoria = '';
+  try { localStorage.removeItem(CLAVE_PIN); } catch (e) {}
+}
+function pedirPin(mensaje) {
+  const pin = window.prompt(mensaje || 'Ingresa tu PIN para continuar:');
+  if (pin === null) return null;
+  const limpio = pin.trim();
+  if (limpio) guardarPin(limpio);
+  return limpio || null;
+}
+
+/** Llama al Web App agregando el PIN; si es incorrecto, lo vuelve a pedir una vez. */
+async function llamarConPin(params) {
+  const p = params instanceof URLSearchParams ? params : new URLSearchParams(params);
+  let pin = leerPinGuardado() || pedirPin();
+  if (!pin) return { success: false, mensaje: 'Acción cancelada: falta el PIN.' };
+  p.set('pin', pin);
+  let data = await llamarWebAppJSONP(`${WEB_APP_URL}?${p.toString()}`);
+  if (data && data.pinInvalido) {
+    borrarPin();
+    if (/Demasiados/.test(data.mensaje || '')) return data;
+    pin = pedirPin('PIN incorrecto. Inténtalo de nuevo:');
+    if (!pin) return { success: false, mensaje: 'Acción cancelada: falta el PIN.' };
+    p.set('pin', pin);
+    data = await llamarWebAppJSONP(`${WEB_APP_URL}?${p.toString()}`);
+    if (data && data.pinInvalido) borrarPin();
+  }
+  return data;
+}
+
+// ======================================================
+// AVISOS DE MARCAJE
+// ======================================================
+const avisoDestacado = new URLSearchParams(location.search).get('aviso');
+let avisosYaEnfocado = false;
+
+const MOTIVOS_WEB = ['Olvido de marcaje', 'Marqué pero no llegó el correo', 'Falla del reloj control', 'Otro'];
+
+function bannerAvisos(clase, texto) {
+  const b = document.getElementById('avisosBanner');
+  if (!texto) { b.style.display = 'none'; return; }
+  b.className = 'estado-banner ' + clase;
+  b.textContent = texto;
+  b.style.display = 'block';
+}
+
+async function cargarAvisos() {
+  const cont = document.getElementById('avisosPendientes');
+  try {
+    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=avisos`);
+    if (!data.success) throw new Error(data.mensaje || 'Error al leer avisos');
+    renderizarAvisos(data);
+  } catch (e) {
+    cont.innerHTML = '';
+    const span = document.createElement('div');
+    span.className = 'avisos-vacio';
+    span.textContent = 'No se pudieron cargar los avisos: ' + e.message;
+    cont.appendChild(span);
+  }
+}
+
+function renderizarAvisos(data) {
+  const card = document.getElementById('avisosCard');
+  const cont = document.getElementById('avisosPendientes');
+  const cfg = document.getElementById('avisosConfig');
+  cont.innerHTML = '';
+
+  const avisosConfig = [];
+  if (!data.destinatariosConfigurados) avisosConfig.push('Falta configurar los correos de dirección.');
+  if (data.activos === false) avisosConfig.push('Los avisos automáticos están desactivados.');
+  cfg.style.display = avisosConfig.length ? 'block' : 'none';
+  cfg.textContent = avisosConfig.join(' ') + ' ';
+  if (avisosConfig.length) {
+    const a = document.createElement('a');
+    a.href = '#'; a.textContent = 'Abrir configuración';
+    a.style.color = 'inherit'; a.style.fontWeight = '600';
+    a.onclick = (ev) => { ev.preventDefault(); abrirConfig('avisos'); };
+    cfg.appendChild(a);
+  }
+
+  card.classList.toggle('con-pendientes', data.pendientes.length > 0);
+
+  if (data.pendientes.length === 0) {
+    const v = document.createElement('div');
+    v.className = 'avisos-vacio';
+    v.textContent = 'Sin avisos pendientes. Si falta un marcaje, aquí aparecerá un borrador para enviar a dirección.';
+    cont.appendChild(v);
+  }
+
+  data.pendientes.forEach(a => cont.appendChild(crearItemAviso(a)));
+
+  const hist = document.getElementById('avisosHistorial');
+  hist.innerHTML = '';
+  if (data.historial.length === 0) {
+    hist.innerHTML = '<div class="avisos-vacio">Todavía no hay avisos.</div>';
+  }
+  data.historial.forEach(a => {
+    const fila = document.createElement('div');
+    fila.className = 'hist-item';
+    const txt = document.createElement('div');
+    let detalle = `${a.tipo === 'entrada' ? 'Entrada' : 'Salida'} ${a.fecha}`;
+    if (a.estado === 'Enviado' || a.estado === 'Aclarado') detalle += ` · informada ${a.horaInformada} · enviado ${a.enviado}`;
+    if (a.marcajeRecibido) detalle += ` · reloj ${a.marcajeRecibido} (correo ${a.correoRecibido})`;
+    if (a.aclaracion) detalle += ` · aclaración ${a.aclaracion}`;
+    txt.textContent = detalle;
+    const chip = document.createElement('span');
+    chip.className = 'estado-chip ' + a.estado;
+    chip.textContent = a.estado;
+    fila.appendChild(txt);
+    fila.appendChild(chip);
+    hist.appendChild(fila);
+  });
+
+  if (avisoDestacado && !avisosYaEnfocado) {
+    avisosYaEnfocado = true;
+    const el = document.getElementById('aviso-' + avisoDestacado);
+    if (el) {
+      el.classList.add('destacado');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      const enHist = data.historial.find(h => h.id === avisoDestacado);
+      if (enHist) {
+        bannerAvisos('ok', `Ese aviso ya está ${enHist.estado.toLowerCase()}.`);
+        document.getElementById('avisosHistWrap').open = true;
+      }
+    }
+  }
+}
+
+function crearItemAviso(a) {
+  const div = document.createElement('div');
+  div.className = 'aviso-item';
+  div.id = 'aviso-' + a.id;
+  const [d, m, y] = a.fecha.split('/');
+  const nombreDia = DIAS_SEMANA[new Date(y, m - 1, d).getDay()];
+  const tipoTxt = a.tipo === 'entrada' ? 'entrada' : 'salida';
+
+  div.innerHTML = `
+    <div class="aviso-titulo"></div>
+    <div class="aviso-sub"></div>
+    <div class="form-fila">
+      <label class="form-campo">Hora real de ${tipoTxt}<input type="time" class="av-hora"></label>
+      <label class="form-campo">Motivo<select class="av-motivo"></select></label>
+    </div>
+    <label class="form-campo" style="display:block; margin-top:10px;">Comentario (opcional)
+      <input type="text" class="av-comentario" maxlength="500" placeholder="Ej: me quedé terminando una atención">
+    </label>
+    <div class="aviso-acciones">
+      <button type="button" class="btn peligro av-enviar">Enviar a dirección</button>
+      <button type="button" class="btn av-descartar">Descartar</button>
+    </div>`;
+  div.querySelector('.aviso-titulo').textContent = `Falta marcaje de ${tipoTxt} · ${nombreDia} ${a.fecha}`;
+  div.querySelector('.aviso-sub').textContent =
+    `Hora esperada ${a.horaEsperada} · detectado ${a.creado}. Si sí marcaste, se resolverá solo cuando llegue el correo del reloj.`;
+  div.querySelector('.av-hora').value = a.horaInformada || a.horaEsperada;
+  const sel = div.querySelector('.av-motivo');
+  MOTIVOS_WEB.forEach(mo => {
+    const o = document.createElement('option');
+    o.value = mo; o.textContent = mo;
+    if (mo === a.motivo) o.selected = true;
+    sel.appendChild(o);
+  });
+  div.querySelector('.av-enviar').onclick = () => enviarAvisoUI(a, div);
+  div.querySelector('.av-descartar').onclick = () => descartarAvisoUI(a, div);
+  return div;
+}
+
+async function enviarAvisoUI(a, div) {
+  const hora = div.querySelector('.av-hora').value;
+  const motivo = div.querySelector('.av-motivo').value;
+  const comentario = div.querySelector('.av-comentario').value;
+  if (!hora) { alert('Indica la hora real.'); return; }
+  const tipoTxt = a.tipo === 'entrada' ? 'entrada' : 'salida';
+  if (!confirm(`Se enviará a dirección (con copia a ti) el aviso de ${tipoTxt} del ${a.fecha} a las ${hora}. ¿Continuar?`)) return;
+
+  const btn = div.querySelector('.av-enviar');
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  try {
+    const data = await llamarConPin({ accion: 'enviarAviso', id: a.id, hora, motivo, comentario });
+    bannerAvisos(data.success ? 'ok' : 'error', data.mensaje || (data.success ? 'Enviado.' : 'No se pudo enviar.'));
+    if (data.success) await cargarAvisos();
+  } catch (e) {
+    bannerAvisos('error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enviar a dirección';
+  }
+}
+
+async function descartarAvisoUI(a, div) {
+  if (!confirm('¿Descartar este aviso? No se enviará nada a dirección.')) return;
+  const btn = div.querySelector('.av-descartar');
+  btn.disabled = true;
+  try {
+    const data = await llamarConPin({ accion: 'descartarAviso', id: a.id });
+    bannerAvisos(data.success ? 'ok' : 'error', data.mensaje);
+    if (data.success) await cargarAvisos();
+  } catch (e) {
+    bannerAvisos('error', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function crearAvisoManualUI() {
+  const fechaIso = document.getElementById('avManualFecha').value;
+  const tipo = document.getElementById('avManualTipo').value;
+  if (!fechaIso) { alert('Selecciona la fecha.'); return; }
+  try {
+    const data = await llamarConPin({ accion: 'crearAviso', fecha: isoADDMMYYYY(fechaIso), tipo });
+    bannerAvisos(data.success ? 'ok' : 'error', data.mensaje);
+    if (data.success) await cargarAvisos();
+  } catch (e) {
+    bannerAvisos('error', e.message);
+  }
+}
+
+// ======================================================
+// PANEL DE CONFIGURACIÓN
+// ======================================================
+let cfgDatos = null;
+let cfgAnioFeriados = new Date().getFullYear();
+let cfgNecesitaRecarga = false;
+
+const ETIQUETAS_WEB = {
+  activos: 'Avisos automáticos activos',
+  destinatarios: 'Correos de dirección',
+  copia: 'Copia (siempre incluida)',
+  firma: 'Firma de los correos',
+  urlWeb: 'URL de esta web',
+  calendario: 'Avisarme también con alarma de calendario',
+  margen: 'Margen antes de avisar (minutos)',
+  horaRecordatorio: 'Hora del recordatorio diario',
+  entradaLV: 'Entrada lunes a viernes',
+  salidaLJ: 'Salida lunes a jueves',
+  salidaV: 'Salida viernes',
+  salidaTurno: 'Salida días con turno (lun–vie)',
+  medioMananaEntrada: 'Mañana libre: hora de entrada',
+  medioTardeSalidaLJ: 'Tarde libre: salida (lun–jue)',
+  medioTardeSalidaV: 'Tarde libre: salida (viernes)',
+  entradaSab: 'Sábado con turno: entrada',
+  salidaSab: 'Sábado con turno: salida',
+  saldoAdmin: 'Días administrativos por año',
+  saldoVac: 'Vacaciones por año',
+  saldoArrastre: 'Vacaciones acumuladas al iniciar (2026)',
+  nombre: 'Nombre en la Ficha'
+};
+const GRUPOS_HORARIOS = [
+  ['Jornada', ['entradaLV', 'salidaLJ', 'salidaV', 'salidaTurno']],
+  ['Medio día administrativo', ['medioMananaEntrada', 'medioTardeSalidaLJ', 'medioTardeSalidaV']],
+  ['Sábado con turno', ['entradaSab', 'salidaSab']]
+];
+
+function bannerCfg(clase, texto) {
+  const b = document.getElementById('cfgBanner');
+  if (!texto) { b.style.display = 'none'; return; }
+  b.className = 'estado-banner ' + clase;
+  b.textContent = texto;
+  b.style.display = 'block';
+  b.scrollIntoView({ block: 'nearest' });
+}
+
+async function abrirConfig(seccion) {
+  document.getElementById('cfgPanel').classList.add('abierto');
+  document.getElementById('cfgPanel').setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  mostrarSeccionCfg(seccion || 'avisos');
+  renderizarTemas();
+  actualizarEstadoPinLocal();
+  bannerCfg('cargando', 'Cargando configuración…');
+  try {
+    const data = await llamarConPin({ accion: 'config', anio: cfgAnioFeriados });
+    if (!data.success) { bannerCfg('error', data.mensaje || 'No se pudo cargar la configuración.'); return; }
+    cfgDatos = data;
+    renderizarCamposCfg();
+    renderizarFeriados(data.feriados);
+    renderizarSistema(data.sistema);
+    actualizarEstadoPinLocal();
+    bannerCfg('', '');
+  } catch (e) {
+    bannerCfg('error', e.message);
+  }
+}
+
+function cerrarConfig() {
+  document.getElementById('cfgPanel').classList.remove('abierto');
+  document.getElementById('cfgPanel').setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  if (cfgNecesitaRecarga) { cfgNecesitaRecarga = false; cargarMes(); cargarAvisos(); }
+}
+
+function mostrarSeccionCfg(sec) {
+  document.querySelectorAll('.cfg-tab').forEach(t => t.classList.toggle('activa', t.dataset.sec === sec));
+  document.querySelectorAll('.cfg-seccion').forEach(s => s.classList.toggle('activa', s.dataset.sec === sec));
+  bannerCfg('', '');
+}
+document.querySelectorAll('.cfg-tab').forEach(t => t.addEventListener('click', () => mostrarSeccionCfg(t.dataset.sec)));
+
+function crearCampoCfg(c) {
+  const div = document.createElement('div');
+  div.className = 'cfg-campo';
+  const titulo = ETIQUETAS_WEB[c.clave] || c.etiqueta;
+  let input;
+  if (c.tipo === 'sino') {
+    const lbl = document.createElement('label');
+    lbl.className = 'switch';
+    input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = (c.valor || '').toUpperCase() !== 'NO';
+    const pista = document.createElement('span'); pista.className = 'pista';
+    const txt = document.createElement('span'); txt.textContent = titulo;
+    lbl.appendChild(input); lbl.appendChild(pista); lbl.appendChild(txt);
+    div.appendChild(lbl);
+  } else {
+    const lbl = document.createElement('label');
+    lbl.className = 'titulo';
+    lbl.textContent = titulo;
+    div.appendChild(lbl);
+    if (c.tipo === 'correos') {
+      input = document.createElement('textarea');
+      input.placeholder = 'correo1@dominio.cl, correo2@dominio.cl';
+    } else {
+      input = document.createElement('input');
+      input.type = { hora: 'time', minutos: 'number', numero: 'number', url: 'url' }[c.tipo] || 'text';
+      if (c.tipo === 'numero') input.step = '0.5';
+      if (c.tipo === 'minutos') { input.min = 5; input.max = 180; input.step = 5; }
+      if (c.tipo === 'url') input.placeholder = 'https://usuario.github.io/repositorio/';
+    }
+    input.value = c.valor || '';
+    div.appendChild(input);
+  }
+  input.dataset.clave = c.clave;
+  input.dataset.tipo = c.tipo;
+  input.dataset.original = c.tipo === 'sino' ? (input.checked ? 'SI' : 'NO') : (c.valor || '');
+  if (c.nota) {
+    const n = document.createElement('div'); n.className = 'nota'; n.textContent = c.nota;
+    div.appendChild(n);
+  }
+  return div;
+}
+
+function renderizarCamposCfg() {
+  const porClave = Object.fromEntries(cfgDatos.campos.map(c => [c.clave, c]));
+  const avisos = document.getElementById('cfgCamposAvisos');
+  avisos.innerHTML = '';
+  ['activos', 'destinatarios', 'copia', 'firma', 'margen', 'horaRecordatorio', 'calendario', 'urlWeb']
+    .forEach(k => porClave[k] && avisos.appendChild(crearCampoCfg(porClave[k])));
+  const urlInput = avisos.querySelector('[data-clave=urlWeb]');
+  if (urlInput && !urlInput.value && location.protocol.startsWith('http')) {
+    urlInput.value = location.origin + location.pathname.replace(/index\.html$/, '');
+  }
+
+  const horarios = document.getElementById('cfgCamposHorarios');
+  horarios.innerHTML = '';
+  GRUPOS_HORARIOS.forEach(([titulo, claves]) => {
+    const st = document.createElement('div'); st.className = 'cfg-subtitulo'; st.textContent = titulo;
+    horarios.appendChild(st);
+    const grid = document.createElement('div'); grid.className = 'cfg-grid';
+    claves.forEach(k => porClave[k] && grid.appendChild(crearCampoCfg(porClave[k])));
+    horarios.appendChild(grid);
+  });
+
+  const saldos = document.getElementById('cfgCamposSaldos');
+  saldos.innerHTML = '';
+  const grid = document.createElement('div'); grid.className = 'cfg-grid';
+  ['saldoAdmin', 'saldoVac', 'saldoArrastre'].forEach(k => porClave[k] && grid.appendChild(crearCampoCfg(porClave[k])));
+  saldos.appendChild(grid);
+  if (porClave.nombre) saldos.appendChild(crearCampoCfg(porClave.nombre));
+}
+
+async function guardarSeccion(sec, btn) {
+  const cont = document.querySelector(`.cfg-seccion[data-sec="${sec}"]`);
+  const params = { accion: 'guardarConfig' };
+  let n = 0;
+  cont.querySelectorAll('[data-clave]').forEach(inp => {
+    const valor = inp.dataset.tipo === 'sino' ? (inp.checked ? 'SI' : 'NO') : inp.value.trim();
+    if (valor !== inp.dataset.original) { params[inp.dataset.clave] = valor; n++; }
+  });
+  if (n === 0) { bannerCfg('ok', 'No hay cambios que guardar.'); return; }
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const data = await llamarConPin(params);
+    bannerCfg(data.success ? 'ok' : 'error', data.mensaje);
+    if (data.success) {
+      cont.querySelectorAll('[data-clave]').forEach(inp => {
+        inp.dataset.original = inp.dataset.tipo === 'sino' ? (inp.checked ? 'SI' : 'NO') : inp.value.trim();
+      });
+      cfgNecesitaRecarga = true;
+      if (sec === 'saldos') cargarSaldos(fechaVista.getFullYear());
+    }
+  } catch (e) {
+    bannerCfg('error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar cambios';
+  }
+}
+
+// ---- Feriados ----
+function renderizarFeriados(fer) {
+  cfgAnioFeriados = fer.anio;
+  document.getElementById('ferAnio').textContent = fer.anio;
+  const cont = document.getElementById('ferLista');
+  cont.innerHTML = '';
+  if (!fer.lista.length) {
+    cont.innerHTML = '<div class="fer-fila">Sin feriados para este año.</div>';
+  }
+  fer.lista.forEach(f => {
+    const fila = document.createElement('div');
+    fila.className = 'fer-fila' + (f.quitado ? ' quitado' : '');
+    const fecha = document.createElement('span'); fecha.className = 'f'; fecha.textContent = f.fecha;
+    const dia = document.createElement('span'); dia.className = 'd'; dia.textContent = f.dia;
+    const txt = document.createElement('span'); txt.className = 't'; txt.textContent = f.desc;
+    const origen = document.createElement('span'); origen.className = 'origen ' + f.origen; origen.textContent = f.origen;
+    const btn = document.createElement('button');
+    btn.className = 'btn-eliminar';
+    btn.textContent = f.quitado ? 'Restaurar' : 'Quitar';
+    btn.onclick = () => operarFeriado(f.quitado ? 'restaurar' : 'quitar', f.fecha);
+    [fecha, dia, txt, origen, btn].forEach(x => fila.appendChild(x));
+    cont.appendChild(fila);
+  });
+  if (!fer.apiDisponible) {
+    const aviso = document.createElement('div');
+    aviso.className = 'fer-fila';
+    aviso.style.color = '#8a5a00';
+    aviso.textContent = 'No hay feriados legales descargados para este año (la API no respondió o aún no los publica).';
+    cont.appendChild(aviso);
+  }
+}
+
+async function cambiarAnioFeriados(delta) {
+  cfgAnioFeriados += delta;
+  document.getElementById('ferAnio').textContent = cfgAnioFeriados;
+  document.getElementById('ferLista').innerHTML = '<div class="fer-fila">Cargando…</div>';
+  const data = await llamarConPin({ accion: 'config', anio: cfgAnioFeriados });
+  if (data.success) renderizarFeriados(data.feriados);
+  else bannerCfg('error', data.mensaje);
+}
+
+async function operarFeriado(op, fecha, desc) {
+  if (op === 'quitar' && !confirm(`¿Quitar ${fecha}? Ese día se esperará marcaje.`)) return;
+  bannerCfg('cargando', 'Guardando…');
+  try {
+    const data = await llamarConPin({ accion: 'feriado', op, fecha: fecha || '', desc: desc || '', anio: cfgAnioFeriados });
+    bannerCfg(data.success ? 'ok' : 'error', data.mensaje);
+    if (data.success) {
+      cfgNecesitaRecarga = true;
+      if (data.feriados) renderizarFeriados(data.feriados);
+      else cambiarAnioFeriados(0);
+    }
+  } catch (e) {
+    bannerCfg('error', e.message);
+  }
+}
+
+async function agregarFeriadoUI(btn) {
+  const iso = document.getElementById('ferNuevaFecha').value;
+  const desc = document.getElementById('ferNuevaDesc').value.trim();
+  if (!iso) { bannerCfg('error', 'Elige la fecha del feriado.'); return; }
+  btn.disabled = true;
+  await operarFeriado('agregar', isoADDMMYYYY(iso), desc || 'Feriado');
+  btn.disabled = false;
+  document.getElementById('ferNuevaFecha').value = '';
+  document.getElementById('ferNuevaDesc').value = '';
+}
+
+// ---- Seguridad ----
+function actualizarEstadoPinLocal() {
+  document.getElementById('pinEstadoLocal').textContent = leerPinGuardado() ? 'Sí, guardado.' : 'No hay PIN guardado.';
+}
+
+async function cambiarPinUI(btn) {
+  const n1 = document.getElementById('pinNuevo').value.trim();
+  const n2 = document.getElementById('pinNuevo2').value.trim();
+  if (!/^\d{4,8}$/.test(n1)) { bannerCfg('error', 'El nuevo PIN debe tener entre 4 y 8 dígitos.'); return; }
+  if (n1 !== n2) { bannerCfg('error', 'Los PIN no coinciden.'); return; }
+  btn.disabled = true;
+  try {
+    const data = await llamarConPin({ accion: 'cambiarPin', nuevo: n1 });
+    bannerCfg(data.success ? 'ok' : 'error', data.mensaje);
+    if (data.success) {
+      guardarPin(n1);
+      document.getElementById('pinNuevo').value = '';
+      document.getElementById('pinNuevo2').value = '';
+      actualizarEstadoPinLocal();
+    }
+  } catch (e) {
+    bannerCfg('error', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function olvidarPinUI() {
+  borrarPin();
+  actualizarEstadoPinLocal();
+  bannerCfg('ok', 'PIN borrado de este dispositivo. Se pedirá la próxima vez.');
+}
+
+// ---- Sistema ----
+function renderizarSistema(s) {
+  const cont = document.getElementById('sisEstado');
+  cont.innerHTML = '';
+  const filas = [
+    ['Revisión de olvidos cada 10 min', s.avisosTrigger, s.ultimaRevision ? `Última revisión: ${s.ultimaRevision}` : 'Aún no se ha ejecutado.', s.avisosTrigger ? 'desactivarAvisos' : 'activarAvisos'],
+    ['Importación diaria (10:00 y 21:00)', s.diarioTrigger, s.ultimoCorreo ? `Último correo del reloj importado: ${s.ultimoCorreo}` : '', s.diarioTrigger ? 'desactivarDiario' : 'activarDiario'],
+    ['Archivado anual automático', s.archivoTrigger, 'Mueve el año anterior a hojas históricas cada 1 de enero.', s.archivoTrigger ? null : 'activarArchivo']
+  ];
+  filas.forEach(([titulo, activo, sub, op]) => {
+    const fila = document.createElement('div');
+    fila.className = 'sis-fila';
+    const izq = document.createElement('div');
+    izq.textContent = titulo;
+    const subEl = document.createElement('div'); subEl.className = 'sub'; subEl.textContent = sub;
+    izq.appendChild(subEl);
+    const der = document.createElement('div');
+    der.style.cssText = 'display:flex; gap:8px; align-items:center; flex-shrink:0;';
+    const pill = document.createElement('span');
+    pill.className = 'pill ' + (activo ? 'on' : 'off');
+    pill.textContent = activo ? 'Activo' : 'Inactivo';
+    der.appendChild(pill);
+    if (op) {
+      const b = document.createElement('button');
+      b.className = 'btn chico';
+      b.textContent = activo ? 'Desactivar' : 'Activar';
+      b.onclick = () => accionSistema(op, b);
+      der.appendChild(b);
+    }
+    fila.appendChild(izq); fila.appendChild(der);
+    cont.appendChild(fila);
+  });
+  if (s.demora) {
+    document.getElementById('sisDemora').textContent =
+      `Último análisis (${s.demora.fecha || ''}): mediana ${s.demora.mediana} min · 90% ≤ ${s.demora.p90} min · máx ${s.demora.maximo} min.`;
+  }
+  const v = document.createElement('div');
+  v.className = 'sis-fila';
+  v.innerHTML = '<div class="sub">Versión del script</div>';
+  const vv = document.createElement('span'); vv.className = 'sub'; vv.textContent = s.version || '';
+  v.appendChild(vv);
+  cont.appendChild(v);
+}
+
+async function accionSistema(op, btn) {
+  if (op === 'desactivarAvisos' && !confirm('¿Desactivar la revisión cada 10 minutos? No se detectarán olvidos.')) return;
+  const textoOriginal = btn.textContent;
+  btn.disabled = true; btn.textContent = '…';
+  bannerCfg('cargando', op === 'analizarDemora' ? 'Analizando correos (puede tardar hasta un minuto)…' : 'Procesando…');
+  try {
+    const data = await llamarConPin({ accion: 'sistema', op });
+    bannerCfg(data.success ? 'ok' : 'error', data.mensaje);
+    if (data.success && data.sistema) renderizarSistema(data.sistema);
+    if (data.success && op === 'recalcularAlertas') cfgNecesitaRecarga = true;
+  } catch (e) {
+    bannerCfg('error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = textoOriginal;
+  }
+}
+
+// ---- Apariencia (solo este dispositivo) ----
+const TEMAS = {
+  'Verde azulado': ['#0f766e', '#115e59', '#e6f4f1'],
+  'Azul': ['#1d4ed8', '#1e3a8a', '#e8eefc'],
+  'Burdeo': ['#9f1239', '#7f1d1d', '#fbeaee'],
+  'Morado': ['#6d28d9', '#4c1d95', '#f0eafd'],
+  'Grafito': ['#3f3f46', '#27272a', '#efefef']
+};
+const CLAVE_TEMA = 'monitorMarcajeTema';
+
+function aplicarTema(nombre) {
+  const t = TEMAS[nombre] || TEMAS['Verde azulado'];
+  const r = document.documentElement.style;
+  r.setProperty('--accent', t[0]);
+  r.setProperty('--accent-dark', t[1]);
+  r.setProperty('--accent-soft', t[2]);
+}
+function temaActual() {
+  try { return localStorage.getItem(CLAVE_TEMA) || 'Verde azulado'; } catch (e) { return 'Verde azulado'; }
+}
+function renderizarTemas() {
+  const cont = document.getElementById('temas');
+  cont.innerHTML = '';
+  const actual = temaActual();
+  Object.entries(TEMAS).forEach(([nombre, colores]) => {
+    const b = document.createElement('button');
+    b.className = 'tema' + (nombre === actual ? ' activo' : '');
+    const m = document.createElement('span'); m.className = 'muestra'; m.style.background = colores[0];
+    const t = document.createElement('span'); t.textContent = nombre;
+    b.appendChild(m); b.appendChild(t);
+    b.onclick = () => {
+      try { localStorage.setItem(CLAVE_TEMA, nombre); } catch (e) {}
+      aplicarTema(nombre);
+      renderizarTemas();
+    };
+    cont.appendChild(b);
+  });
+}
+aplicarTema(temaActual());
+
+if (new URLSearchParams(location.search).get('config')) abrirConfig();
+
 actualizarCamposSolicitud();
 cargarMes();
+cargarAvisos();
 </script>
 </body>
 </html>
