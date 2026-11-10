@@ -504,7 +504,7 @@
     </section>
 
     <section class="cfg-seccion" data-sec="feriados">
-      <p class="cfg-desc">Los feriados legales se cargan solos. Aquí puedes agregar un feriado (por ejemplo, un interferiado) o quitar uno que no aplique.</p>
+      <p class="cfg-desc">Los feriados legales se calculan solos según la ley. Las elecciones y feriados extraordinarios agrégalos aquí; también puedes quitar uno que no aplique.</p>
       <div class="fer-nav">
         <button class="btn chico" onclick="cambiarAnioFeriados(-1)">‹</button>
         <strong id="ferAnio">–</strong>
@@ -1726,11 +1726,11 @@ function renderizarFeriados(fer) {
     [fecha, dia, txt, origen, btn].forEach(x => fila.appendChild(x));
     cont.appendChild(fila);
   });
-  if (!fer.apiDisponible) {
+  if (fer.apiError) {
     const aviso = document.createElement('div');
     aviso.className = 'fer-fila';
-    aviso.style.color = '#8a5a00';
-    aviso.textContent = 'No hay feriados legales descargados para este año (la API no respondió o aún no los publica).';
+    aviso.style.cssText = 'color:var(--text-3); font-size:.74em;';
+    aviso.textContent = 'Feriados calculados según la ley. El servicio externo de respaldo no respondió (' + fer.apiError + '). Las elecciones y feriados extraordinarios agrégalos abajo.';
     cont.appendChild(aviso);
   }
 }
