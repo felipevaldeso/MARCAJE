@@ -274,6 +274,20 @@
   .tema .muestra { width:18px; height:18px; border-radius:50%; flex-shrink:0; }
   .tema.activo { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 
+  /* ---- Pantalla de PIN ---- */
+  .pin-overlay { position:fixed; inset:0; z-index:100; background: var(--bg); display:none; align-items:center; justify-content:center; padding:24px; }
+  .pin-overlay.abierto { display:flex; }
+  .pin-caja { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:24px; width:100%; max-width:320px; text-align:center; }
+  .pin-caja h2 { font-size:1.05em; font-weight:600; color: var(--accent-dark); margin-bottom:4px; }
+  .pin-caja p { font-size:.8em; color: var(--text-2); margin-bottom:16px; }
+  .pin-caja input {
+    width:100%; padding:12px; font-size:1.3em; text-align:center; letter-spacing:.3em; font-family:inherit;
+    border:1px solid var(--border-strong); border-radius:6px; margin-bottom:12px; background: var(--surface); color: var(--text);
+  }
+  .pin-caja input:focus { outline:none; border-color: var(--accent); }
+  .pin-caja .btn { width:100%; padding:11px; font-size:.9em; }
+  .pin-error { color: var(--bad); font-size:.8em; min-height:1.2em; margin-bottom:8px; }
+
   /* ---- Avisos de marcaje ---- */
   .card.avisos { border-left: 3px solid var(--accent); }
   .card.avisos.con-pendientes { border-left-color: var(--bad); }
@@ -454,7 +468,7 @@
     <div class="separador">
       <div class="subtitulo-lista">
         <span>Solicitudes registradas</span>
-        <button type="button" class="btn chico" onclick="cargarListaSolicitudes()">Actualizar</button>
+        <button type="button" class="btn chico" onclick="cargarListaSolicitudes(null)">Actualizar</button>
       </div>
       <div id="listaSolicitudes" style="display:flex; flex-direction:column; gap:6px;"></div>
     </div>
@@ -472,6 +486,16 @@
     </form>
   </div>
 
+</div>
+
+<div class="pin-overlay" id="pinPanel">
+  <form class="pin-caja" id="pinForm" autocomplete="off">
+    <h2>Monitor de Marcaje</h2>
+    <p>Ingresa tu PIN. Se pide una sola vez en este dispositivo.</p>
+    <div class="pin-error" id="pinError"></div>
+    <input type="password" id="pinEntrada" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="PIN">
+    <button type="submit" class="btn primario">Entrar</button>
+  </form>
 </div>
 
 <div class="cfg-overlay" id="cfgPanel" aria-hidden="true">
@@ -527,17 +551,19 @@
     </section>
 
     <section class="cfg-seccion" data-sec="seguridad">
-      <p class="cfg-desc">El PIN protege todo lo que envía correos o modifica datos. Queda guardado en cada dispositivo donde lo ingreses.</p>
+      <p class="cfg-desc">El PIN se pide una sola vez en cada dispositivo. Después el dispositivo queda con una sesión propia; el PIN no se guarda en él.</p>
       <div class="cfg-subtitulo">Cambiar PIN</div>
       <div class="cfg-grid">
         <div class="cfg-campo"><label class="titulo">Nuevo PIN</label><input type="password" id="pinNuevo" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
         <div class="cfg-campo"><label class="titulo">Repetir nuevo PIN</label><input type="password" id="pinNuevo2" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
       </div>
-      <div class="cfg-campo"><div class="nota">Entre 4 y 8 dígitos. Se te pedirá el PIN actual si este dispositivo no lo tiene guardado.</div></div>
+      <div class="cfg-campo"><div class="nota">Entre 4 y 8 dígitos; se recomiendan 6 o más. Al cambiarlo se cierra la sesión de los demás dispositivos.</div></div>
       <button class="btn primario" onclick="cambiarPinUI(this)">Cambiar PIN</button>
       <div class="cfg-subtitulo">Este dispositivo</div>
-      <div class="sis-fila"><div>PIN guardado en este navegador<div class="sub" id="pinEstadoLocal"></div></div>
-        <button class="btn chico" onclick="olvidarPinUI()">Olvidar PIN</button></div>
+      <div class="sis-fila"><div>Sesión<div class="sub" id="pinEstadoLocal"></div></div>
+        <button class="btn chico" onclick="cerrarSesionUI(false)">Cerrar sesión</button></div>
+      <div class="sis-fila"><div>Todos los dispositivos<div class="sub">Úsalo si perdiste un teléfono o prestaste un equipo.</div></div>
+        <button class="btn chico" onclick="cerrarSesionUI(true)">Cerrar todas</button></div>
     </section>
 
     <section class="cfg-seccion" data-sec="sistema">
@@ -563,82 +589,18 @@
 
 <script>
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwtnp4_z4ZiIupXNlgq7c9wg88RwbzArjRc7eNtGXeGf5lGHzXXZrzqihXpWVeZIow-/exec';
-const SHEET_URL_ID = '15YfajPdLw3m5ay4k-V66RI3Xn7m3ItZEM_MS6DELVk0';
-
-// Tu planilla de turnos (Finanzas Médicas) — reemplaza a KIKA
-const SHEET_TURNOS_ID = '1K7IVI32_7qyD2BZ8mzUrtNoDZ3V4Zw2Vt7wsLcoMUnI';
-const HOJA_TURNOS = 'Registros';
-// Columnas: A=ID(0) B=Fecha(1) C=Día(2) D=Centro(3) E=Horas(4) F=Tipo(5) G=Mes(6)
-
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 const DIAS_SEMANA = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
 
 let fechaVista = new Date();
 let datosMarcajes = {};
-let turnoDatesSet = new Set(); // "DD/MM/YYYY" desde Finanzas Médicas
+let turnoDatesSet = new Set(); // "DD/MM/YYYY" con turno (Finanzas Médicas, vía el script)
 let turnoInfoMap = new Map();  // "DD/MM/YYYY" -> {centro, horas, tipo}
 // v4.1: estos tres vienen del Apps Script (?accion=mes), la misma lógica que genera las alertas
 let feriadosMap = new Map();    // "DD/MM/YYYY" -> descripción
 let especialesMap = new Map();  // "DD/MM/YYYY" -> {tipo, fraccion, notas, medioDia}
 let esperadosSet = new Set();   // días (hasta hoy) en que se espera marcaje
 let usarEsperados = false;
-
-async function fetchSheetTable(sheetId, sheetName) {
-  // headers=1: la fila 1 siempre es encabezado (evita que gviz "adivine" mal)
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(sheetName)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('No se pudo conectar a la planilla');
-  const text = await res.text();
-  const jsonStr = text.substring(text.indexOf('(') + 1, text.lastIndexOf(')'));
-  const data = JSON.parse(jsonStr);
-  if (data.status === 'error') {
-    const msg = (data.errors && data.errors[0] && data.errors[0].detailed_message) || 'Hoja no encontrada';
-    throw new Error(msg);
-  }
-  return data.table;
-}
-
-function filaAValores(tabla) {
-  if (!tabla || !tabla.rows) return [];
-  return tabla.rows.map(r => (r.c || []).map(c => (c ? c.v : null)));
-}
-
-function normalizarFecha(fechaStr) {
-  if (!fechaStr) return fechaStr;
-  const partes = fechaStr.toString().trim().split('/');
-  if (partes.length !== 3) return fechaStr;
-  const dia = partes[0].padStart(2, '0');
-  const mes = partes[1].padStart(2, '0');
-  const año = partes[2];
-  return `${dia}/${mes}/${año}`;
-}
-
-function valorFechaCelda(v) {
-  if (v === null || v === undefined || v === '') return '';
-  const str = v.toString().trim();
-  if (str.startsWith('Date(')) {
-    const numeros = str.match(/-?\d+/g);
-    if (numeros && numeros.length >= 3) {
-      const año = parseInt(numeros[0]);
-      const mesIndex = parseInt(numeros[1]);
-      const dia = parseInt(numeros[2]);
-      return `${String(dia).padStart(2, '0')}/${String(mesIndex + 1).padStart(2, '0')}/${año}`;
-    }
-  }
-  return normalizarFecha(str);
-}
-
-function valorFechaISO(v) {
-  // Para la columna B de Finanzas Médicas: AAAA-MM-DD como texto, o Date de Sheets
-  if (v === null || v === undefined || v === '') return '';
-  const str = v.toString().trim();
-  if (str.startsWith('Date(')) return valorFechaCelda(v);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-    const [a, m, d] = str.split('-');
-    return `${d}/${m}/${a}`;
-  }
-  return normalizarFecha(str);
-}
 
 function esFechaValida(f) {
   return /^\d{2}\/\d{2}\/\d{4}$/.test(f || '');
@@ -656,77 +618,6 @@ function metaTipo(tipo) {
   }
 }
 
-/** Turnos desde Finanzas Médicas (vía gviz). Devuelve {dates:Set, info:Map}. */
-async function cargarTurnosFinanzasMedicas() {
-  const dates = new Set();
-  const info = new Map();
-  let ok = false;
-  try {
-    const tabla = await fetchSheetTable(SHEET_TURNOS_ID, HOJA_TURNOS);
-    filaAValores(tabla).forEach(fila => {
-      const fecha = valorFechaISO(fila[1]);
-      if (!esFechaValida(fecha)) return;
-      dates.add(fecha);
-      info.set(fecha, {
-        centro: (fila[3] || '').toString(),
-        horas: parseFloat(fila[4]) || 0,
-        tipo: (fila[5] || '').toString()
-      });
-    });
-    ok = true;
-  } catch (e) {
-    console.log('No se pudo cargar Finanzas Médicas:', e.message);
-  }
-  return { dates, info, ok };
-}
-
-/** Feriados, días especiales y días esperados del mes, calculados por el Apps Script. */
-async function cargarDiasEspeciales(año, mesIdx) {
-  const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=mes&anio=${año}&mes=${mesIdx}`);
-  if (!data || !data.success) throw new Error((data && data.mensaje) || 'Respuesta inválida del Web App');
-  return {
-    feriados: new Map(Object.entries(data.feriados || {})),
-    especiales: new Map(Object.entries(data.especiales || {})),
-    esperados: new Set(data.esperados || [])
-  };
-}
-
-/** Hoja Marcajes-Mes-Año (vía gviz). Devuelve {datos, existe}. */
-async function cargarHojaMarcajes(año, mesIdx) {
-  const datos = {};
-  try {
-    const tabla = await fetchSheetTable(SHEET_URL_ID, `Marcajes-${MESES[mesIdx]}-${año}`);
-    const filas = filaAValores(tabla);
-
-    // Si la hoja no existe, gviz devuelve la primera hoja: se detecta por el mes de las fechas
-    const primeraFechaValida = filas.map(f => valorFechaCelda(f[0])).find(esFechaValida);
-    if (primeraFechaValida) {
-      const [, mm, aa] = primeraFechaValida.split('/').map(Number);
-      if (mm - 1 !== mesIdx || aa !== año) throw new Error('La hoja pedida no existe todavía.');
-    } else {
-      throw new Error('Hoja sin datos.');
-    }
-
-    // Columnas: Fecha, Día Semana, Hora Entrada, Hora Salida, Tipo Turno, Horas Turno, Notas
-    filas.forEach(fila => {
-      const fecha = valorFechaCelda(fila[0]);
-      if (!esFechaValida(fecha)) return;
-      const horaEntrada = (fila[2] || '').toString().trim();
-      const horaSalida = (fila[3] || '').toString().trim();
-      const tipoTurno = (fila[4] || '').toString().trim();
-      datos[fecha] = {
-        entrada: !!horaEntrada, salida: !!horaSalida,
-        turno: !!tipoTurno, tipoTurno: tipoTurno, horasTurno: fila[5],
-        horaEntrada: horaEntrada, horaSalida: horaSalida
-      };
-    });
-    return { datos, existe: true };
-  } catch (e) {
-    console.log('Sin hoja de Marcajes para este mes:', e.message);
-    return { datos, existe: false };
-  }
-}
-
 let cargaMesToken = 0;
 
 async function cargarMes() {
@@ -738,69 +629,63 @@ async function cargarMes() {
   document.getElementById('mesLabel').textContent = `${nombreMes} ${año}`;
   const banner = document.getElementById('estadoBanner');
   banner.className = 'estado-banner cargando';
-  banner.textContent = 'Cargando datos...';
+  banner.textContent = 'Cargando datos…';
   document.getElementById('statsRow').style.display = 'none';
   document.getElementById('calendario').innerHTML = '';
 
-  const [turnos, marcajes, especialesRes] = await Promise.all([
-    cargarTurnosFinanzasMedicas(),
-    cargarHojaMarcajes(año, mesIdx),
-    cargarDiasEspeciales(año, mesIdx).then(r => ({ ok: true, ...r }), e => ({ ok: false, error: e }))
-  ]);
+  // Una sola consulta protegida trae todo el mes (marcajes, turnos, feriados, permisos, saldos, avisos)
+  let data;
+  try {
+    data = await llamarConPin({ accion: 'datos', anio: año, mes: mesIdx });
+  } catch (e) {
+    data = { success: false, mensaje: e.message };
+  }
   if (miToken !== cargaMesToken) return;
 
-  turnoDatesSet = turnos.dates;
-  turnoInfoMap = turnos.info;
-  const datosLocal = marcajes.datos;
-
-  // Finanzas Médicas es la fuente de verdad de los turnos: si se pudo leer, la ⭐ y el
-  // detalle salen de ahí (un turno eliminado o cambiado se refleja al instante).
-  if (turnos.ok) {
-    Object.keys(datosLocal).forEach(fecha => {
-      const inf = turnoInfoMap.get(fecha);
-      datosLocal[fecha].turno = !!inf;
-      datosLocal[fecha].tipoTurno = inf ? `${inf.centro} (${inf.tipo})` : '';
-      datosLocal[fecha].horasTurno = inf ? inf.horas : '';
-    });
+  if (!data || !data.success) {
+    datosMarcajes = {};
+    feriadosMap = new Map(); especialesMap = new Map(); esperadosSet = new Set();
+    usarEsperados = false;
+    banner.className = 'estado-banner error';
+    banner.textContent = 'No se pudieron cargar los datos: ' + ((data && data.mensaje) || 'error desconocido');
+    renderizarCalendario(año, mesIdx);
+    return;
   }
 
-  // Turnos planificados (Finanzas Médicas) del mes en vista, incluye días futuros
-  turnoDatesSet.forEach(fecha => {
-    const [, mK, aK] = fecha.split('/').map(Number);
-    if (aK !== año || (mK - 1) !== mesIdx) return;
+  turnoInfoMap = new Map(Object.entries(data.turnos || {}));
+  turnoDatesSet = new Set(turnoInfoMap.keys());
+  const datosLocal = {};
+  const etiquetaTurno = inf => (inf ? `${inf.centro} (${inf.tipo})` : '');
+
+  Object.entries(data.marcajes || {}).forEach(([fecha, m]) => {
+    const inf = turnoInfoMap.get(fecha);
+    datosLocal[fecha] = {
+      entrada: !!m.he, salida: !!m.hs, horaEntrada: m.he || '', horaSalida: m.hs || '',
+      turno: !!inf, tipoTurno: etiquetaTurno(inf), horasTurno: inf ? inf.horas : ''
+    };
+  });
+  // Turnos sin marcaje todavía (incluye días futuros)
+  turnoInfoMap.forEach((inf, fecha) => {
     if (!datosLocal[fecha]) {
-      const info = turnoInfoMap.get(fecha);
-      datosLocal[fecha] = {
-        entrada: false, salida: false, turno: true,
-        tipoTurno: info ? `${info.centro} (${info.tipo})` : '', horasTurno: info ? info.horas : '',
-        horaEntrada: '', horaSalida: ''
-      };
-    } else {
-      datosLocal[fecha].turno = true;
+      datosLocal[fecha] = { entrada: false, salida: false, horaEntrada: '', horaSalida: '',
+        turno: true, tipoTurno: etiquetaTurno(inf), horasTurno: inf.horas };
     }
   });
 
-  if (especialesRes.ok) {
-    feriadosMap = especialesRes.feriados;
-    especialesMap = especialesRes.especiales;
-    esperadosSet = especialesRes.esperados;
-  } else {
-    feriadosMap = new Map();
-    especialesMap = new Map();
-    esperadosSet = new Set();
-  }
+  feriadosMap = new Map(Object.entries(data.feriados || {}));
+  especialesMap = new Map(Object.entries(data.especiales || {}));
+  esperadosSet = new Set(data.esperados || []);
 
   const hoy = new Date();
   const esMesActual = hoy.getFullYear() === año && hoy.getMonth() === mesIdx;
-  usarEsperados = especialesRes.ok && (marcajes.existe || esMesActual);
+  usarEsperados = data.existeHoja || esMesActual;
   datosMarcajes = datosLocal;
 
-  if (!especialesRes.ok) {
+  const advertencias = (data.avisosSistema || []).slice();
+  if (!data.existeHoja && !esMesActual) advertencias.push(`No hay marcajes registrados para ${nombreMes} ${año}.`);
+  if (advertencias.length) {
     banner.className = 'estado-banner error';
-    banner.textContent = `No se pudieron cargar feriados y permisos (${especialesRes.error.message}). Solo se muestran los marcajes registrados.`;
-  } else if (!marcajes.existe && !esMesActual) {
-    banner.className = 'estado-banner error';
-    banner.textContent = `No hay marcajes registrados para ${nombreMes} ${año}.`;
+    banner.textContent = advertencias.join(' ');
   } else {
     banner.className = 'estado-banner ok';
     banner.textContent = `Actualizado a las ${hoy.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'})}`;
@@ -808,8 +693,9 @@ async function cargarMes() {
 
   renderizarCalendario(año, mesIdx);
   renderizarStats(año, mesIdx);
-  cargarSaldos(año);
-  cargarListaSolicitudes();
+  cargarSaldos(año, data.saldos);
+  cargarListaSolicitudes(data.solicitudes);
+  cargarAvisos(data.avisos);
 }
 
 function crearTickets(info, colorFaltante) {
@@ -1093,11 +979,10 @@ async function actualizarDesdeGmail() {
   banner.textContent = 'Buscando nuevos correos de marcaje en Gmail... esto puede tardar unos segundos.';
 
   try {
-    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=actualizar`);
+    const data = await llamarConPin({ accion: 'actualizar' });
     if (data.success) {
       banner.className = 'estado-banner ok';
       banner.textContent = (data.mensaje || 'Búsqueda en Gmail completada.') + ' Recargando calendario…';
-      cargarAvisos();
       await cargarMes();
     } else {
       banner.className = 'estado-banner error';
@@ -1113,14 +998,14 @@ async function actualizarDesdeGmail() {
   }
 }
 
-async function cargarSaldos(anio) {
+async function cargarSaldos(anio, precargado) {
   document.getElementById('saldosAnio').textContent = `(${anio})`;
   const banner = document.getElementById('saldosBanner');
   banner.style.display = 'none';
   if (WEB_APP_URL.startsWith('PEGA_AQUI') || !WEB_APP_URL) return;
 
   try {
-    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=saldos&anio=${anio}`);
+    const data = precargado || await llamarConPin({ accion: 'saldos', anio: anio });
     if (data.success) {
       document.getElementById('saldoAdminNum').textContent = data.admin;
       document.getElementById('saldoVacNum').textContent = data.vacaciones;
@@ -1194,14 +1079,14 @@ async function enviarSolicitud(event) {
   return false;
 }
 
-async function cargarListaSolicitudes() {
+async function cargarListaSolicitudes(precargado) {
   const cont = document.getElementById('listaSolicitudes');
   const anio = fechaVista.getFullYear();
   cont.innerHTML = '<span style="color:var(--text-3); font-size:.82em;">Cargando…</span>';
   if (WEB_APP_URL.startsWith('PEGA_AQUI') || !WEB_APP_URL) { cont.innerHTML = ''; return; }
 
   try {
-    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=listarSolicitudes&anio=${anio}`);
+    const data = (precargado && precargado.solicitudes) ? precargado : await llamarConPin({ accion: 'listarSolicitudes', anio: anio });
     if (!data.success || !data.solicitudes || data.solicitudes.length === 0) {
       cont.innerHTML = '<span style="color:var(--text-3); font-size:.82em;">Sin solicitudes registradas este año.</span>';
       return;
@@ -1309,45 +1194,90 @@ function cambiarMes(delta) {
 }
 
 // ======================================================
-// PIN (se pide una vez y queda guardado en este navegador)
+// ACCESO: el PIN se ingresa una vez por dispositivo. El servidor entrega una sesión
+// (código largo al azar) que se guarda aquí; el PIN no se guarda en el dispositivo.
 // ======================================================
-const CLAVE_PIN = 'monitorMarcajePin';
+const CLAVE_SESION = 'monitorMarcajeSesion';
+const CLAVE_PIN_ANTIGUO = 'monitorMarcajePin'; // versiones anteriores guardaban el PIN: se migra y se borra
+let sesionMemoria = '';
 
-function leerPinGuardado() {
-  try { return localStorage.getItem(CLAVE_PIN) || ''; } catch (e) { return pinMemoria || ''; }
+function leerSesion() {
+  try { return localStorage.getItem(CLAVE_SESION) || sesionMemoria; } catch (e) { return sesionMemoria; }
 }
-let pinMemoria = '';
-function guardarPin(pin) {
-  pinMemoria = pin;
-  try { localStorage.setItem(CLAVE_PIN, pin); } catch (e) { /* modo privado: solo en memoria */ }
+function guardarSesion(token) {
+  sesionMemoria = token;
+  try { localStorage.setItem(CLAVE_SESION, token); } catch (e) { /* modo privado: solo en memoria */ }
 }
-function borrarPin() {
-  pinMemoria = '';
-  try { localStorage.removeItem(CLAVE_PIN); } catch (e) {}
-}
-function pedirPin(mensaje) {
-  const pin = window.prompt(mensaje || 'Ingresa tu PIN para continuar:');
-  if (pin === null) return null;
-  const limpio = pin.trim();
-  if (limpio) guardarPin(limpio);
-  return limpio || null;
+function borrarSesion() {
+  sesionMemoria = '';
+  try { localStorage.removeItem(CLAVE_SESION); } catch (e) {}
 }
 
-/** Llama al Web App agregando el PIN; si es incorrecto, lo vuelve a pedir una vez. */
+function pedirPinEnPantalla(mensajeError) {
+  return new Promise(resolve => {
+    const panel = document.getElementById('pinPanel');
+    const input = document.getElementById('pinEntrada');
+    const error = document.getElementById('pinError');
+    const form = document.getElementById('pinForm');
+    error.textContent = mensajeError || '';
+    input.value = '';
+    panel.classList.add('abierto');
+    setTimeout(() => input.focus(), 50);
+    form.onsubmit = ev => {
+      ev.preventDefault();
+      const pin = input.value.trim();
+      if (!pin) return;
+      panel.classList.remove('abierto');
+      resolve(pin);
+    };
+  });
+}
+
+let accesoEnCurso = null;
+
+/** Devuelve una sesión válida, pidiendo el PIN en pantalla si hace falta (una sola vez aunque haya varias consultas). */
+function obtenerSesion() {
+  const actual = leerSesion();
+  if (actual) return Promise.resolve(actual);
+  if (accesoEnCurso) return accesoEnCurso;
+
+  accesoEnCurso = (async () => {
+    let mensaje = '';
+    // Migración: si este dispositivo tenía guardado el PIN, se usa una vez y se borra
+    let pinPrevio = '';
+    try { pinPrevio = localStorage.getItem(CLAVE_PIN_ANTIGUO) || ''; localStorage.removeItem(CLAVE_PIN_ANTIGUO); } catch (e) {}
+
+    for (;;) {
+      const pin = pinPrevio || await pedirPinEnPantalla(mensaje);
+      pinPrevio = '';
+      let data;
+      try {
+        data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=entrar&pin=${encodeURIComponent(pin)}`);
+      } catch (e) {
+        mensaje = 'No se pudo conectar: ' + e.message;
+        continue;
+      }
+      if (data && data.success && data.token) {
+        guardarSesion(data.token);
+        return data.token;
+      }
+      mensaje = (data && data.mensaje) || 'PIN incorrecto.';
+    }
+  })();
+  accesoEnCurso.finally(() => { accesoEnCurso = null; });
+  return accesoEnCurso;
+}
+
+/** Llama al Web App con la sesión del dispositivo; si ya no es válida, pide el PIN y reintenta una vez. */
 async function llamarConPin(params) {
   const p = params instanceof URLSearchParams ? params : new URLSearchParams(params);
-  let pin = leerPinGuardado() || pedirPin();
-  if (!pin) return { success: false, mensaje: 'Acción cancelada: falta el PIN.' };
-  p.set('pin', pin);
+  p.set('t', await obtenerSesion());
   let data = await llamarWebAppJSONP(`${WEB_APP_URL}?${p.toString()}`);
-  if (data && data.pinInvalido) {
-    borrarPin();
-    if (/Demasiados/.test(data.mensaje || '')) return data;
-    pin = pedirPin('PIN incorrecto. Inténtalo de nuevo:');
-    if (!pin) return { success: false, mensaje: 'Acción cancelada: falta el PIN.' };
-    p.set('pin', pin);
+  if (data && data.accesoInvalido) {
+    borrarSesion();
+    p.set('t', await obtenerSesion());
     data = await llamarWebAppJSONP(`${WEB_APP_URL}?${p.toString()}`);
-    if (data && data.pinInvalido) borrarPin();
+    if (data && data.accesoInvalido) borrarSesion();
   }
   return data;
 }
@@ -1368,10 +1298,10 @@ function bannerAvisos(clase, texto) {
   b.style.display = 'block';
 }
 
-async function cargarAvisos() {
+async function cargarAvisos(precargado) {
   const cont = document.getElementById('avisosPendientes');
   try {
-    const data = await llamarWebAppJSONP(`${WEB_APP_URL}?accion=avisos`);
+    const data = (precargado && precargado.pendientes) ? precargado : await llamarConPin({ accion: 'avisos' });
     if (!data.success) throw new Error(data.mensaje || 'Error al leer avisos');
     renderizarAvisos(data);
   } catch (e) {
@@ -1609,7 +1539,7 @@ function cerrarConfig() {
   document.getElementById('cfgPanel').classList.remove('abierto');
   document.getElementById('cfgPanel').setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
-  if (cfgNecesitaRecarga) { cfgNecesitaRecarga = false; cargarMes(); cargarAvisos(); }
+  if (cfgNecesitaRecarga) { cfgNecesitaRecarga = false; cargarMes(); }
 }
 
 function mostrarSeccionCfg(sec) {
@@ -1788,7 +1718,9 @@ async function agregarFeriadoUI(btn) {
 
 // ---- Seguridad ----
 function actualizarEstadoPinLocal() {
-  document.getElementById('pinEstadoLocal').textContent = leerPinGuardado() ? 'Sí, guardado.' : 'No hay PIN guardado.';
+  const n = cfgDatos && cfgDatos.sistema ? cfgDatos.sistema.sesiones : null;
+  document.getElementById('pinEstadoLocal').textContent =
+    'Este dispositivo tiene la sesión iniciada.' + (n ? ` Dispositivos con sesión: ${n}.` : '');
 }
 
 async function cambiarPinUI(btn) {
@@ -1801,10 +1733,8 @@ async function cambiarPinUI(btn) {
     const data = await llamarConPin({ accion: 'cambiarPin', nuevo: n1 });
     bannerCfg(data.success ? 'ok' : 'error', data.mensaje);
     if (data.success) {
-      guardarPin(n1);
       document.getElementById('pinNuevo').value = '';
       document.getElementById('pinNuevo2').value = '';
-      actualizarEstadoPinLocal();
     }
   } catch (e) {
     bannerCfg('error', e.message);
@@ -1813,10 +1743,12 @@ async function cambiarPinUI(btn) {
   }
 }
 
-function olvidarPinUI() {
-  borrarPin();
-  actualizarEstadoPinLocal();
-  bannerCfg('ok', 'PIN borrado de este dispositivo. Se pedirá la próxima vez.');
+async function cerrarSesionUI(todas) {
+  if (!confirm(todas ? '¿Cerrar la sesión en TODOS los dispositivos? Habrá que ingresar el PIN de nuevo en cada uno.'
+                     : '¿Cerrar la sesión en este dispositivo?')) return;
+  try { await llamarConPin({ accion: todas ? 'cerrarTodas' : 'cerrarSesion' }); } catch (e) { /* igual se borra aquí */ }
+  borrarSesion();
+  location.reload();
 }
 
 // ---- Sistema ----
@@ -1936,7 +1868,6 @@ if (new URLSearchParams(location.search).get('config')) abrirConfig();
 
 actualizarCamposSolicitud();
 cargarMes();
-cargarAvisos();
 </script>
 </body>
 </html>
