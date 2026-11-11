@@ -548,6 +548,8 @@
         <button class="btn chico" onclick="accionSistema('correoPrueba', this)">Probar</button></div>
       <div class="sis-fila"><div>Analizar demora del correo del reloj<div class="sub" id="sisDemora">Ayuda a elegir el margen de los avisos.</div></div>
         <button class="btn chico" onclick="accionSistema('analizarDemora', this)">Analizar</button></div>
+      <div class="sis-fila"><div>Sincronizar turnos con Finanzas Médicas<div class="sub" id="sisSyncTurnos">Se hace solo cuando detecta cambios; úsalo si acabas de editar turnos.</div></div>
+        <button class="btn chico" onclick="accionSistema('sincronizarTurnos', this)">Sincronizar</button></div>
       <div class="sis-fila"><div>Recalcular alertas del año<div class="sub">Útil después de cambiar feriados o permisos antiguos.</div></div>
         <button class="btn chico" onclick="accionSistema('recalcularAlertas', this)">Recalcular</button></div>
     </section>
@@ -658,6 +660,7 @@ function metaTipo(tipo) {
 async function cargarTurnosFinanzasMedicas() {
   const dates = new Set();
   const info = new Map();
+  let ok = false;
   try {
     const tabla = await fetchSheetTable(SHEET_TURNOS_ID, HOJA_TURNOS);
     filaAValores(tabla).forEach(fila => {
@@ -670,10 +673,11 @@ async function cargarTurnosFinanzasMedicas() {
         tipo: (fila[5] || '').toString()
       });
     });
+    ok = true;
   } catch (e) {
     console.log('No se pudo cargar Finanzas Médicas:', e.message);
   }
-  return { dates, info };
+  return { dates, info, ok };
 }
 
 /** Feriados, días especiales y días esperados del mes, calculados por el Apps Script. */
@@ -748,6 +752,17 @@ async function cargarMes() {
   turnoDatesSet = turnos.dates;
   turnoInfoMap = turnos.info;
   const datosLocal = marcajes.datos;
+
+  // Finanzas Médicas es la fuente de verdad de los turnos: si se pudo leer, la ⭐ y el
+  // detalle salen de ahí (un turno eliminado o cambiado se refleja al instante).
+  if (turnos.ok) {
+    Object.keys(datosLocal).forEach(fecha => {
+      const inf = turnoInfoMap.get(fecha);
+      datosLocal[fecha].turno = !!inf;
+      datosLocal[fecha].tipoTurno = inf ? `${inf.centro} (${inf.tipo})` : '';
+      datosLocal[fecha].horasTurno = inf ? inf.horas : '';
+    });
+  }
 
   // Turnos planificados (Finanzas Médicas) del mes en vista, incluye días futuros
   turnoDatesSet.forEach(fecha => {
@@ -1486,8 +1501,8 @@ async function enviarAvisoUI(a, div) {
   btn.disabled = true; btn.textContent = 'Enviando…';
   try {
     const data = await llamarConPin({ accion: 'enviarAviso', id: a.id, hora, motivo, comentario });
-    bannerAvisos(data.success ? 'ok' : 'error', data.mensaje || (data.success ? 'Enviado.' : 'No se pudo enviar.'));
-    if (data.success) await cargarAvisos();
+    bannerAvisos(data.success || data.resuelto ? 'ok' : 'error', data.mensaje || (data.success ? 'Enviado.' : 'No se pudo enviar.'));
+    if (data.success || data.resuelto) { await cargarAvisos(); if (data.resuelto) cargarMes(); }
   } catch (e) {
     bannerAvisos('error', e.message);
   } finally {
@@ -1836,6 +1851,18 @@ function renderizarSistema(s) {
     fila.appendChild(izq); fila.appendChild(der);
     cont.appendChild(fila);
   });
+  const rap = document.createElement('div');
+  rap.className = 'sis-fila';
+  rap.innerHTML = '<div>Búsqueda rápida de Gmail<div class="sub"></div></div><span class="pill"></span>';
+  rap.querySelector('.sub').textContent = s.gmailRapido
+    ? 'Lee solo los correos nuevos del reloj, uno por uno.'
+    : 'Para activarla: en el editor de Apps Script → Servicios (+) → "Gmail API" → Agregar, y luego Implementar → Nueva versión.';
+  rap.querySelector('.pill').className = 'pill ' + (s.gmailRapido ? 'on' : 'off');
+  rap.querySelector('.pill').textContent = s.gmailRapido ? 'Activa' : 'Inactiva';
+  cont.insertBefore(rap, cont.children[1] || null);
+  if (s.ultimaSyncTurnos) {
+    document.getElementById('sisSyncTurnos').textContent = 'Última sincronización: ' + s.ultimaSyncTurnos + '. Se repite sola si cambian los turnos.';
+  }
   if (s.demora) {
     document.getElementById('sisDemora').textContent =
       `Último análisis (${s.demora.fecha || ''}): mediana ${s.demora.mediana} min · 90% ≤ ${s.demora.p90} min · máx ${s.demora.maximo} min.`;
@@ -1857,7 +1884,7 @@ async function accionSistema(op, btn) {
     const data = await llamarConPin({ accion: 'sistema', op });
     bannerCfg(data.success ? 'ok' : 'error', data.mensaje);
     if (data.success && data.sistema) renderizarSistema(data.sistema);
-    if (data.success && op === 'recalcularAlertas') cfgNecesitaRecarga = true;
+    if (data.success && (op === 'recalcularAlertas' || op === 'sincronizarTurnos')) cfgNecesitaRecarga = true;
   } catch (e) {
     bannerCfg('error', e.message);
   } finally {
