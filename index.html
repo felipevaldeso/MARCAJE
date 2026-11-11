@@ -3,328 +3,339 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Monitor de Marcaje - CESFAM</title>
+<title>Marcaje y Turnos</title>
+<meta name="theme-color" content="#0d0e12">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
+  /* Tema oscuro sobrio (v5.1): grises neutros, tipografía del sistema y un solo color de acento */
   :root {
-    --bg: #f3f5f5;
-    --surface: #ffffff;
-    --border: #e4e4e7;
-    --border-strong: #d4d4d8;
-    --text: #1c1917;
-    --text-2: #57534e;
-    --text-3: #a8a29e;
-    --accent: #0f766e;
-    --accent-dark: #115e59;
-    --accent-soft: #e6f4f1;
-    --ok: #22a35a;
-    --bad: #dc3b30;
-    --warn: #e0a20f;
-    --off: #d6d3d1;
-    --turno: #7c3aed;
-    --radius: 8px;
+    --bg: #000000;
+    --surface: #1c1c1e;
+    --surface-2: #2c2c2e;
+    --border: rgba(84,84,88,.48);
+    --border-strong: rgba(84,84,88,.8);
+    --text: #f5f5f7;
+    --text-2: rgba(235,235,245,.62);
+    --text-3: rgba(235,235,245,.34);
+    --accent: #0a84ff;
+    --accent-dark: #4aa3ff;
+    --accent-soft: rgba(10,132,255,.16);
+    --accent-ink: #ffffff;
+    --ok: #30d158;
+    --bad: #ff453a;
+    --warn: #ffd60a;
+    --off: #48484a;
+    --turno: #bf9cf5;
+    --radius: 14px;
+    --mono: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, Roboto, sans-serif;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { overflow-x: hidden; width: 100%; }
+  html, body { overflow-x:hidden; width:100%; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 20px 16px;
-    padding-top: max(20px, env(safe-area-inset-top));
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, Roboto, "Helvetica Neue", sans-serif;
+    background: var(--bg); color: var(--text); min-height:100vh;
+    padding: 16px 16px 96px;
+    padding-top: max(16px, env(safe-area-inset-top));
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+    font-variant-numeric: tabular-nums;
   }
-  .container { max-width: 860px; margin: 0 auto; width: 100%; }
+  select, button, input, textarea { font-family: inherit; }
+  .container { max-width: 720px; margin: 0 auto; width:100%; }
 
-  .header {
-    background: var(--accent); color: #fff; border-radius: var(--radius);
-    padding: 16px 20px; margin-bottom: 16px;
+  /* ---- Encabezado ---- */
+  .header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding: 6px 2px 10px; }
+  .header h1 { font-size: 1.7em; font-weight: 700; letter-spacing: -.022em; }
+  .header h1 em { font-style: normal; color: var(--text-3); font-weight: 400; }
+  .header p { color: var(--text-2); font-size: .8em; margin-top: 1px; }
+  .btn-config {
+    background: var(--surface); color: var(--accent); border:none;
+    border-radius: 999px; padding: 8px 14px; font-size:.82em; font-weight:500; cursor:pointer; white-space:nowrap;
   }
-  .header h1 { font-size: 1.3em; font-weight: 600; letter-spacing: -.01em; }
-  .header p { color: #ccebe6; font-size: .85em; margin-top: 2px; }
+  .btn-config:hover { background: var(--surface-2); }
 
-  .card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 20px; margin-bottom: 16px; overflow: hidden;
-  }
-  .card h2 {
-    font-size: .8em; font-weight: 600; color: var(--accent-dark);
-    border-left: 3px solid var(--accent); padding-left: 8px;
-    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px;
-  }
-  .card h2 .anio-chip { color: var(--text-3); font-weight: 500; }
+  .frase { display:flex; align-items:baseline; gap:10px; margin: 0 2px 16px; font-size: .8em; color: var(--text-2); line-height: 1.45; }
+  .frase .gatos { display:none; }
 
-  .nav { display:flex; align-items:center; justify-content:space-between; margin-bottom: 14px; gap: 10px; }
+  /* ---- Vistas y barra inferior ---- */
+  .vista { display:none; animation: aparecer .18s ease; }
+  .vista.activa { display:block; }
+  @keyframes aparecer { from { opacity:0; } to { opacity:1; } }
+  .tabbar {
+    position:fixed; left:0; right:0; bottom:0; z-index:40; display:flex; justify-content:center;
+    background: rgba(22,22,24,.82); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-top:.5px solid var(--border); padding: 6px 8px max(8px, env(safe-area-inset-bottom));
+  }
+  .tabbar-inner { display:flex; width:100%; max-width: 520px; }
+  .tab {
+    flex:1; background:none; border:none; cursor:pointer; color: var(--text-3);
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding: 6px 2px; font-size:.64em; font-weight:500; position:relative;
+  }
+  .tab svg { width:23px; height:23px; stroke: currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .tab.activa { color: var(--accent); }
+  .tab .punto { position:absolute; top:3px; right:calc(50% - 17px); width:8px; height:8px; border-radius:50%; background: var(--bad); display:none; }
+  .tab.con-alerta .punto { display:block; }
+
+  /* ---- Tarjetas ---- */
+  .card { background: var(--surface); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; overflow:hidden; }
+  .card h2 { font-size:1.02em; font-weight:600; color: var(--text); letter-spacing:-.01em; margin-bottom: 14px; }
+  .card h2 .anio-chip { color: var(--text-3); font-weight:400; }
+
+  .nav { display:flex; align-items:center; justify-content:space-between; margin-bottom: 14px; gap:10px; }
   .nav button {
-    background: var(--surface); color: var(--text); border: 1px solid var(--border-strong);
-    border-radius: 6px; width: 36px; height: 36px; font-size: 1.1em; line-height: 1; cursor: pointer;
+    background: var(--surface-2); color: var(--accent); border:none;
+    border-radius: 50%; width:34px; height:34px; font-size:1.15em; line-height:1; cursor:pointer;
   }
-  .nav button:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-dark); }
-  .nav button { color: var(--accent-dark); }
-  .nav .mes { font-size: 1.1em; font-weight: 600; text-transform: capitalize; color: var(--accent-dark); }
+  .nav button:hover { background: #3a3a3c; }
+  .nav .mes { font-size:1.12em; font-weight:600; text-transform:capitalize; letter-spacing:-.01em; }
 
-  .acciones { display:flex; gap:8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .acciones { display:flex; gap:8px; margin-bottom: 14px; flex-wrap:wrap; }
   .btn {
-    font-family: inherit; font-size: .82em; font-weight: 500; cursor: pointer;
-    border-radius: 6px; padding: 8px 14px; border: 1px solid var(--border-strong);
-    background: var(--surface); color: var(--text);
+    font-size:.84em; font-weight:500; cursor:pointer; border-radius:10px; padding: 10px 16px;
+    border:none; background: var(--surface-2); color: var(--text);
   }
-  .btn:hover { background: var(--accent-soft); border-color: var(--accent); }
-  .btn.primario { background: var(--accent); border-color: var(--accent); color: #fafaf9; }
-  .btn.primario:hover { background: var(--accent-dark); }
-  .btn.chico { padding: 4px 10px; font-size: .75em; }
-  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn:hover { background:#3a3a3c; }
+  .btn.primario { background: var(--accent); color: var(--accent-ink); font-weight:600; }
+  .btn.primario:hover { filter: brightness(1.1); background: var(--accent); }
+  .btn.chico { padding: 6px 12px; font-size:.76em; border-radius: 8px; }
+  .btn.peligro { background: rgba(255,69,58,.18); color: var(--bad); font-weight:600; }
+  .btn.peligro:hover { background: rgba(255,69,58,.28); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
 
-  .estado-banner {
-    padding: 8px 12px; border-radius: 6px; margin-bottom: 14px; font-size: .8em;
-    border: 1px solid var(--border); background: var(--bg); color: var(--text-2);
-  }
+  .estado-banner { padding: 9px 12px; border-radius:10px; margin-bottom: 14px; font-size:.78em; background: var(--surface-2); color: var(--text-2); }
   .estado-banner.cargando { color: var(--text-2); }
-  .estado-banner.error { border-color: #e7c9c4; background: #faf3f2; color: var(--bad); }
-  .estado-banner.ok { color: #17663e; background: #ecf8f1; border-color: #c6ead5; }
-  .estado-banner.cargando { background: var(--accent-soft); border-color: #c4e3dd; color: var(--accent-dark); }
+  .estado-banner.error { background: rgba(255,69,58,.14); color:#ff8a82; }
+  .estado-banner.ok { color: var(--text-3); background: transparent; padding: 0 2px; }
 
-  .stats-row {
-    display:grid; grid-template-columns: repeat(auto-fit, minmax(90px,1fr));
-    border: 1px solid var(--border); border-radius: 6px; margin-bottom: 16px; overflow: hidden;
-  }
-  .stat { padding: 10px 12px; min-width: 0; border-right: 1px solid var(--border); }
-  .stat:last-child { border-right: none; }
-  #statsRow { grid-template-columns: repeat(5, minmax(0,1fr)); }
-  .stat .num { font-size: 1.35em; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .stat .lbl { font-size: .68em; color: var(--text-2); margin-top: 1px; }
-  #statCompleto { color: var(--ok); }
-  #statParcial { color: #b7791f; }
-  #statFaltante { color: var(--bad); }
-  #statTurnos { color: var(--turno); }
-  #statLibres { color: #0c5a85; }
-  #saldoAdminNum { color: #7a5d00; }
-  #saldoVacNum { color: #17663e; }
+  .stats-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(90px,1fr)); gap:8px; margin-bottom: 16px; }
+  #statsRow { grid-template-columns: repeat(5, minmax(0,1fr)); gap:0; background: var(--surface-2); border-radius: 12px; }
+  .stat { padding: 10px 8px; min-width:0; background: var(--surface-2); border-radius: 12px; text-align:center; }
+  #statsRow .stat { background: transparent; border-radius:0; border-right: .5px solid var(--border); }
+  #statsRow .stat:last-child { border-right:none; }
+  .stat .num { font-size:1.4em; font-weight:600; letter-spacing:-.01em; }
+  .stat .lbl { font-size:.62em; color: var(--text-2); margin-top:1px; }
+  #statCompleto { color: var(--ok); } #statParcial { color: var(--warn); } #statFaltante { color: var(--bad); }
+  #statTurnos { color: var(--turno); } #statLibres { color: var(--text); }
+  #saldoAdminNum, #saldoVacNum { color: var(--text); }
 
+  /* ---- Calendario (lunes a domingo) ---- */
   .semana-header { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:4px; margin-bottom:4px; }
-  .semana-header div { text-align:center; font-weight:500; color: var(--text-3); font-size:.7em; padding:4px 0; min-width: 0; }
-
+  .semana-header div { text-align:center; font-weight:500; color: var(--text-3); font-size:.68em; padding:4px 0; min-width:0; }
   .calendario { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:4px; }
-
   .dia {
-    aspect-ratio: 1; min-width: 0; min-height: 0; border-radius: 6px; border: 1px solid var(--border);
-    padding: 4px; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    position: relative; cursor:pointer; background: var(--surface);
+    aspect-ratio:1; min-width:0; min-height:0; border-radius:10px; border:1px solid transparent;
+    padding:4px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:relative; cursor:pointer; background: var(--surface-2); transition: background .12s, transform .12s;
   }
-  .dia:hover { border-color: var(--accent); }
-  .dia.vacio { border-color: transparent; background: transparent; cursor:default; }
-  .dia.no-trackeado { background: #fafaf9; color: var(--text-3); border-color: #efeeec; cursor: default; }
-  .dia.no-trackeado[onclick], .dia.no-trackeado.clicable { cursor: pointer; }
-  .dia.feriado    { background:#fdf0d5; border-color:#f2d58f; color:#8a5a00; }
-  .dia.licencia   { background:#e0f2fe; border-color:#9fd3f5; color:#0c5a85; }
-  .dia.diaadmin   { background:#fef6c7; border-color:#f1df7a; color:#7a5d00; }
-  .dia.vacaciones { background:#dcf5e7; border-color:#96dbb3; color:#17663e; }
-  .dia.comision   { background:#e6e8fb; border-color:#b0b7f0; color:#3730a3; }
-  .dia.permiso    { background:#fbe4ec; border-color:#f0aac2; color:#9d2350; }
-  .dia.medio-dia  { border-style: dashed; border-color: var(--warn); }
-  .dia.hoy { box-shadow: inset 0 0 0 2px var(--accent); }
-
-  .dia-numero { font-weight:500; font-size:clamp(.72em,3vw,.9em); margin-bottom:4px; font-variant-numeric: tabular-nums; }
+  .dia:hover { background:#3a3a3c; }
+  .dia:active { transform: scale(.96); }
+  .dia.vacio { background:transparent; cursor:default; }
+  .dia.vacio:active { transform:none; }
+  .dia.no-trackeado { background: transparent; color: var(--text-3); }
+  .dia.no-trackeado:hover { background: var(--surface-2); }
+  .dia.feriado    { background: rgba(255,159,10,.13); color:#ffb340; }
+  .dia.licencia   { background: rgba(100,210,255,.12); color:#7dd3f5; }
+  .dia.diaadmin   { background: rgba(255,214,10,.11); color:#e9cf4a; }
+  .dia.vacaciones { background: rgba(48,209,88,.12); color:#5fd983; }
+  .dia.comision   { background: rgba(94,92,230,.18); color:#a5a4f3; }
+  .dia.permiso    { background: rgba(255,55,95,.13); color:#ff7d98; }
+  .dia.medio-dia  { border:1px dashed rgba(255,214,10,.7); }
+  .dia.hoy { box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .dia.hoy .dia-numero { color: var(--accent); font-weight:700; }
+  .dia.seleccionado { background: var(--accent-soft); }
+  .dia-numero { font-weight:500; font-size:clamp(.74em,3vw,.92em); margin-bottom:4px; }
   .tickets { display:flex; gap:3px; }
-  .ticket { width:8px; height:8px; border-radius:50%; flex-shrink: 0; }
-  .ticket.verde { background: var(--ok); }
-  .ticket.rojo { background: var(--bad); }
-  .ticket.amarillo { background: var(--warn); }
-  .ticket.gris { background: var(--off); }
+  .ticket { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .ticket.verde { background: var(--ok); } .ticket.rojo { background: var(--bad); }
+  .ticket.amarillo { background: var(--warn); } .ticket.gris { background: var(--off); }
+  .estrella { position:absolute; top:3px; right:5px; font-size:.54em; font-weight:700; color: currentColor; opacity:.85; }
+  .estrella.turno { color: var(--turno); opacity:1; }
+  .badge-medio { position:absolute; top:3px; left:5px; font-size:.54em; font-weight:700; color: var(--warn); }
 
-  /* Siglas: F feriado · L licencia · A administrativo · V vacaciones · C comisión · P permiso · T turno */
-  .estrella {
-    position:absolute; top:3px; right:4px; font-size:.58em; font-weight:700;
-    letter-spacing:.02em; color: currentColor; opacity: .85;
-  }
-  .estrella.turno { color: var(--turno); opacity: 1; }
-  .badge-medio {
-    position:absolute; top:3px; left:4px; font-size:.58em; font-weight:700; color: var(--warn);
-  }
+  .leyenda { margin-top:12px; display:grid; grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); gap:8px 14px; font-size:.74em; color: var(--text-2); }
+  .leyenda-item { display:flex; align-items:center; gap:8px; min-width:0; }
+  .leyenda-tickets { display:flex; gap:3px; flex-shrink:0; width:22px; }
+  .sigla { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; width:22px; height:18px; border-radius:5px; font-size:.82em; font-weight:700; border:none; }
+  .sigla.feriado    { background: rgba(255,159,10,.16); color:#ffb340; }
+  .sigla.licencia   { background: rgba(100,210,255,.15); color:#7dd3f5; }
+  .sigla.diaadmin   { background: rgba(255,214,10,.14); color:#e9cf4a; }
+  .sigla.vacaciones { background: rgba(48,209,88,.15); color:#5fd983; }
+  .sigla.comision   { background: rgba(94,92,230,.22); color:#a5a4f3; }
+  .sigla.permiso    { background: rgba(255,55,95,.16); color:#ff7d98; }
+  .sigla.turno      { background: rgba(191,156,245,.16); color: var(--turno); }
+  .sigla.medio      { background:transparent; border:1px dashed rgba(255,214,10,.7); color: var(--warn); }
+  .sigla.vacio      { background: var(--surface-2); }
+  details.leyenda-wrap summary { cursor:pointer; font-size:.8em; color: var(--accent); font-weight:500; margin-top:14px; list-style:none; }
+  details.leyenda-wrap summary::-webkit-details-marker { display:none; }
 
-  .leyenda {
-    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);
-    display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:8px 14px;
-    font-size:.76em; color: var(--text-2);
-  }
-  .leyenda-item { display:flex; align-items:center; gap:8px; min-width: 0; }
-  .leyenda-tickets { display:flex; gap:3px; flex-shrink: 0; width: 22px; }
-  .sigla {
-    display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
-    width:22px; height:18px; border-radius:4px; font-size:.85em; font-weight:700; border:1px solid;
-  }
-  .sigla.feriado    { background:#fdf0d5; border-color:#f2d58f; color:#8a5a00; }
-  .sigla.licencia   { background:#e0f2fe; border-color:#9fd3f5; color:#0c5a85; }
-  .sigla.diaadmin   { background:#fef6c7; border-color:#f1df7a; color:#7a5d00; }
-  .sigla.vacaciones { background:#dcf5e7; border-color:#96dbb3; color:#17663e; }
-  .sigla.comision   { background:#e6e8fb; border-color:#b0b7f0; color:#3730a3; }
-  .sigla.permiso    { background:#fbe4ec; border-color:#f0aac2; color:#9d2350; }
-  .sigla.turno      { background:#f1eafe; border-color:#cdb6f7; color:var(--turno); }
-  .sigla.medio      { background:var(--surface); border-color:var(--warn); border-style:dashed; color:var(--warn); }
-  .sigla.vacio      { background:#fafaf9; border-color:#efeeec; }
-
-  .detalle-panel {
-    display:none; margin-top: 14px; padding: 14px 16px; border-radius: 6px;
-    background: var(--accent-soft); border: 1px solid #c4e3dd; border-left: 3px solid var(--accent);
-  }
-  .detalle-panel h3 { margin-bottom:6px; font-size:.92em; font-weight:600; color: var(--accent-dark); }
+  .detalle-panel { display:none; margin-top:14px; padding: 14px 16px; border-radius:12px; background: var(--surface-2); }
+  .detalle-panel h3 { margin-bottom:6px; font-size:1em; font-weight:600; color: var(--text); }
   .detalle-panel p { color: var(--text-2); font-size:.84em; margin-bottom:3px; }
-  .detalle-panel .cerrar { float:right; cursor:pointer; color: var(--text-3); font-size: .9em; }
+  .detalle-panel p:empty { display:none; }
+  .detalle-panel .cerrar { float:right; cursor:pointer; color: var(--text-3); font-size:.9em; padding:2px 4px; }
 
-  .form-solicitud { display:flex; flex-direction:column; gap:12px; margin-top: 6px; }
+  /* ---- Turno dentro del detalle del día ---- */
+  .bloque-turno { margin-top:12px; padding-top:12px; border-top:.5px solid var(--border); }
+  .bloque-turno .tit { font-size:.76em; font-weight:600; color: var(--text-2); margin-bottom:8px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .chip { border:1px solid transparent; background: rgba(118,118,128,.24); color: var(--text-2); border-radius: 999px; padding: 7px 13px; font-size:.8em; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:7px; }
+  .chip .pt { width:7px; height:7px; border-radius:50%; background: var(--off); }
+  .chip.sel { color: var(--text); background: rgba(118,118,128,.4); border-color: var(--text-2); }
+  .turno-info { font-size:.82em; color: var(--text-2); margin-bottom:10px; }
+
+  /* ---- Formularios ---- */
+  .form-solicitud { display:flex; flex-direction:column; gap:12px; margin-top:6px; }
   .form-fila { display:flex; gap:10px; flex-wrap:wrap; }
-  .form-campo { flex:1; min-width:140px; font-size:.78em; color: var(--text-2); }
-  .form-campo select, .form-campo input {
-    width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--border-strong);
-    margin-top:4px; font-size:1.08em; font-family:inherit; color: var(--text); background: var(--surface);
+  .form-campo { flex:1; min-width:130px; font-size:.76em; color: var(--text-2); font-weight:500; }
+  .form-campo select, .form-campo input, .cfg-campo input[type=text], .cfg-campo input[type=url], .cfg-campo input[type=number],
+  .cfg-campo input[type=time], .cfg-campo input[type=password], .cfg-campo input[type=date], .cfg-campo textarea {
+    display:block; width:100%; max-width:100%; min-width:0; padding: 10px 12px; border-radius:10px; border:1px solid transparent;
+    margin-top:5px; font-size:1.12em; color: var(--text); background: rgba(118,118,128,.24); font-weight:400;
+    -webkit-appearance:none; appearance:none; color-scheme: dark; min-height: 42px;
   }
-  .form-campo select:focus, .form-campo input:focus { outline:none; border-color: var(--accent); }
-
-  .subtitulo-lista { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:.8em; font-weight:600; color: var(--text-2); }
-  .separador { margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
-  .fila-solicitud {
-    display:flex; justify-content:space-between; align-items:center; gap:8px;
-    padding:8px 10px; border-radius:6px; border:1px solid var(--border); font-size:.82em;
-  }
+  .card .form-campo select, .card .form-campo input { background: rgba(118,118,128,.24); }
+  .cfg-campo input, .cfg-campo textarea { font-size:.92em !important; margin-top:0 !important; }
+  .form-campo select:focus, .form-campo input:focus, .cfg-campo input:focus, .cfg-campo textarea:focus { outline:none; border-color: var(--accent); }
+  .subtitulo-lista { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:.84em; font-weight:600; color: var(--text); }
+  .separador { margin-top:18px; padding-top:14px; border-top:.5px solid var(--border); }
+  .fila-solicitud { display:flex; justify-content:space-between; align-items:center; gap:8px; padding: 10px 0; border-bottom:.5px solid var(--border); font-size:.82em; }
+  .fila-solicitud:last-child { border-bottom:none; }
   .fila-solicitud .info { display:flex; align-items:center; gap:8px; min-width:0; }
-  .btn-eliminar { border:none; background:none; cursor:pointer; color: var(--text-3); font-size:.85em; padding:2px 4px; font-family: inherit; }
+  .btn-eliminar { border:none; background:none; cursor:pointer; color: var(--accent); font-size:.85em; padding:2px 4px; font-weight:500; }
   .btn-eliminar:hover { color: var(--bad); }
 
-  /* ---- Encabezado con botón de configuración ---- */
-  .header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .btn-config {
-    background: rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.35);
-    border-radius:6px; padding:7px 12px; font-size:.8em; font-family:inherit; cursor:pointer; white-space:nowrap;
-  }
-  .btn-config:hover { background: rgba(255,255,255,.24); }
+  /* ---- Turnos e ingresos ---- */
+  .turno-item { display:flex; align-items:center; gap:12px; padding: 10px 0; border-bottom:.5px solid var(--border); }
+  .turno-item:last-child { border-bottom:none; }
+  .turno-fecha { width:42px; height:42px; border-radius:10px; background: var(--surface-2); display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; }
+  .turno-fecha b { font-size:1em; font-weight:600; line-height:1; }
+  .turno-fecha span { font-size:.5em; font-weight:600; color: var(--text-2); text-transform:uppercase; margin-top:2px; }
+  .turno-item .c { flex:1; min-width:0; }
+  .turno-item .c b { display:block; font-size:.9em; font-weight:500; color: var(--text) !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .turno-item .c span { font-size:.76em; color: var(--text-2); }
+  .turno-item .h { font-size:.84em; color: var(--text-2); background: transparent; padding: 4px 4px; }
+  .vacio-txt { text-align:center; color: var(--text-3); font-size:.84em; padding: 22px 0; }
+  .gran-num { font-size: 3em; font-weight:700; color: var(--text); line-height:1; letter-spacing:-.03em; }
+  .gran-num small { font-size:.36em; color: var(--text-2); font-weight:500; letter-spacing:0; }
+  .duo { display:flex; gap:8px; margin-top:14px; }
+  .duo > div { flex:1; background: var(--surface-2); border-radius:12px; padding: 11px 13px; min-width:0; }
+  .duo .k { font-size:.68em; color: var(--text-2); font-weight:500; text-transform: lowercase; }
+  .duo .k::first-letter { text-transform: uppercase; }
+  .duo .v { font-size:1.2em; font-weight:600; margin-top:2px; color: var(--text) !important; }
+  .duo .s { font-size:.74em; color: var(--text-2); margin-top:1px; }
+  .linea-total { display:flex; justify-content:space-between; align-items:baseline; margin-top:12px; padding-top:12px; border-top:.5px solid var(--border); }
+  .linea-total .k { display:block; font-size:.8em; color: var(--text-2); font-weight:500; text-transform: lowercase; }
+  .linea-total .k::first-letter { text-transform: uppercase; }
+  .linea-total .v { font-size:1.3em; font-weight:600; }
+  .barra-centro { margin-bottom:14px; }
+  .barra-centro .top { display:flex; justify-content:space-between; font-size:.84em; margin-bottom:6px; }
+  .barra-centro .top b { color: var(--text) !important; font-weight:500; }
+  .barra-centro .top span { color: var(--text-2); font-size:.92em; }
+  .barra-centro .riel { height:5px; border-radius:3px; background: var(--surface-2); overflow:hidden; }
+  .barra-centro .riel i { display:block; height:100%; border-radius:3px; }
+  .anual { display:flex; align-items:flex-end; gap:5px; height:120px; margin: 6px 0 4px; }
+  .anual .col { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:5px; height:100%; cursor:pointer; }
+  .anual .col i { display:block; width:100%; border-radius:4px 4px 0 0; background:#48484a; min-height:0; transition: height .35s; }
+  .anual .col.actual i { background: var(--accent); }
+  .anual .col.sel i { filter: brightness(1.35); }
+  .anual .col span { font-size:.54em; color: var(--text-3); text-transform:capitalize; }
+  .anual .col.actual span { color: var(--accent); font-weight:600; }
+  .anual-detalle { font-size:.8em; color: var(--text-2); min-height:1.4em; text-align:center; margin-bottom:6px; }
+  details.mes-hist { border-bottom:.5px solid var(--border); background: transparent; overflow:hidden; }
+  details.mes-hist:last-child { border-bottom:none; }
+  details.mes-hist summary { list-style:none; cursor:pointer; padding: 12px 0; display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:.9em; font-weight:500; }
+  details.mes-hist summary::-webkit-details-marker { display:none; }
+  details.mes-hist summary span { font-weight:400; font-size:.9em; color: var(--text-2); }
+  details.mes-hist .dentro { padding: 0 0 12px; }
 
-  /* ---- Panel de configuración ---- */
-  .cfg-overlay { position:fixed; inset:0; background: var(--bg); z-index:50; overflow-y:auto; display:none; }
-  .cfg-overlay.abierto { display:block; }
-  .cfg-top {
-    position:sticky; top:0; z-index:2; background: var(--accent); color:#fff;
-    padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top));
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .cfg-top h2 { font-size:1.05em; font-weight:600; }
-  .cfg-tabs {
-    position:sticky; top:48px; z-index:1; background: var(--surface); border-bottom:1px solid var(--border);
-    display:flex; gap:4px; overflow-x:auto; padding: 8px 12px; scrollbar-width: none;
-  }
-  .cfg-tabs::-webkit-scrollbar { display:none; }
-  .cfg-tab {
-    flex-shrink:0; border:1px solid var(--border); background: var(--surface); color: var(--text-2);
-    border-radius: 16px; padding: 6px 12px; font-size:.8em; font-family:inherit; cursor:pointer;
-  }
-  .cfg-tab.activa { background: var(--accent); border-color: var(--accent); color:#fff; }
-  .cfg-cuerpo { max-width: 760px; margin: 0 auto; padding: 16px; padding-bottom: max(32px, env(safe-area-inset-bottom)); }
-  .cfg-seccion { display:none; }
-  .cfg-seccion.activa { display:block; }
-  .cfg-desc { font-size:.8em; color: var(--text-2); margin-bottom: 14px; line-height:1.45; }
-  .cfg-campo { margin-bottom: 14px; }
-  .cfg-campo label.titulo { display:block; font-size:.82em; font-weight:600; color: var(--text); margin-bottom:4px; }
-  .cfg-campo .nota { font-size:.72em; color: var(--text-3); margin-top:3px; }
-  .cfg-campo input[type=text], .cfg-campo input[type=url], .cfg-campo input[type=number],
-  .cfg-campo input[type=time], .cfg-campo input[type=password], .cfg-campo input[type=date], .cfg-campo textarea {
-    width:100%; padding:9px 10px; border-radius:6px; border:1px solid var(--border-strong);
-    font-size:.9em; font-family:inherit; color: var(--text); background: var(--surface);
-  }
-  .cfg-campo textarea { min-height: 64px; resize: vertical; }
-  .cfg-campo input:focus, .cfg-campo textarea:focus { outline:none; border-color: var(--accent); }
-  .cfg-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 0 12px; }
-  .cfg-subtitulo { font-size:.74em; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color: var(--accent-dark); margin: 18px 0 10px; }
-  .cfg-guardar { display:flex; gap:8px; align-items:center; margin-top: 6px; flex-wrap:wrap; }
-
-  /* interruptor SI/NO */
-  .switch { display:flex; align-items:center; gap:10px; cursor:pointer; font-size:.85em; }
-  .switch input { display:none; }
-  .switch .pista { width:40px; height:22px; border-radius:11px; background: var(--off); position:relative; transition: background .15s; flex-shrink:0; }
-  .switch .pista::after { content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; transition: left .15s; }
-  .switch input:checked + .pista { background: var(--accent); }
-  .switch input:checked + .pista::after { left:21px; }
-
-  /* feriados */
-  .fer-nav { display:flex; align-items:center; gap:10px; margin-bottom: 10px; }
-  .fer-nav strong { font-size: .95em; }
-  .fer-lista { border:1px solid var(--border); border-radius:6px; background: var(--surface); }
-  .fer-fila { display:flex; align-items:center; gap:10px; padding: 8px 10px; border-bottom:1px solid var(--border); font-size:.82em; }
-  .fer-fila:last-child { border-bottom:none; }
-  .fer-fila .f { font-variant-numeric: tabular-nums; width: 84px; flex-shrink:0; }
-  .fer-fila .d { color: var(--text-3); width: 64px; flex-shrink:0; }
-  .fer-fila .t { flex:1; min-width:0; }
-  .fer-fila.quitado .t, .fer-fila.quitado .f { text-decoration: line-through; color: var(--text-3); }
-  .origen { font-size:.72em; font-weight:600; padding:1px 7px; border-radius:10px; flex-shrink:0; }
-  .origen.Legal { background:#fdf0d5; color:#8a5a00; }
-  .origen.Manual { background: var(--accent-soft); color: var(--accent-dark); }
-
-  /* sistema */
-  .sis-fila { display:flex; justify-content:space-between; align-items:center; gap:10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size:.84em; }
-  .sis-fila:last-child { border-bottom:none; }
-  .sis-fila .sub { font-size:.85em; color: var(--text-3); margin-top:2px; }
-  .pill { font-size:.75em; font-weight:600; padding: 2px 9px; border-radius: 10px; }
-  .pill.on { background:#dcf5e7; color:#17663e; }
-  .pill.off { background:#f1f1f0; color:#78716c; }
-
-  /* apariencia */
-  .temas { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:8px; }
-  .tema { border:1px solid var(--border); border-radius:6px; padding:10px; cursor:pointer; background: var(--surface); font-size:.82em; display:flex; align-items:center; gap:8px; font-family:inherit; }
-  .tema .muestra { width:18px; height:18px; border-radius:50%; flex-shrink:0; }
-  .tema.activo { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  /* ---- Avisos de marcaje ---- */
+  .card.avisos { border:none; }
+  .card.avisos.con-pendientes h2 { color: var(--bad); }
+  .avisos-vacio { font-size:.84em; color: var(--text-2); }
+  .aviso-item { background: rgba(255,69,58,.1); border-radius:12px; padding: 14px; margin-bottom:10px; }
+  .aviso-item.destacado { box-shadow: 0 0 0 1.5px var(--bad); }
+  .aviso-titulo { font-size:.94em; font-weight:600; color: var(--text); margin-bottom:2px; }
+  .aviso-sub { font-size:.78em; color: var(--text-2); margin-bottom:10px; line-height:1.4; }
+  .aviso-acciones { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  details.avisos-extra { margin-top:10px; font-size:.84em; }
+  details.avisos-extra summary { cursor:pointer; color: var(--accent); font-weight:500; padding:4px 0; list-style:none; }
+  details.avisos-extra summary::-webkit-details-marker { display:none; }
+  .hist-item { display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:.5px solid var(--border); font-size:.95em; color: var(--text-2); }
+  .hist-item:last-child { border-bottom:none; }
+  .estado-chip { font-size:.78em; font-weight:500; padding:1px 8px; border-radius:999px; white-space:nowrap; align-self:flex-start; background: rgba(118,118,128,.24); color: var(--text-2); }
+  .estado-chip.Enviado { background: var(--accent-soft); color: var(--accent-dark); } .estado-chip.Aclarado { background: rgba(94,92,230,.22); color:#a5a4f3; }
+  .estado-chip.Resuelto { background: rgba(48,209,88,.15); color:#5fd983; } .estado-chip.Descartado { background: rgba(118,118,128,.24); color: var(--text-3); }
+  .aviso-config { font-size:.8em; color:#ffb340; background: rgba(255,159,10,.13); border-radius:10px; padding:9px 11px; margin-bottom:10px; }
 
   /* ---- Pantalla de PIN ---- */
   .pin-overlay { position:fixed; inset:0; z-index:100; background: var(--bg); display:none; align-items:center; justify-content:center; padding:24px; }
   .pin-overlay.abierto { display:flex; }
-  .pin-caja { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:24px; width:100%; max-width:320px; text-align:center; }
-  .pin-caja h2 { font-size:1.05em; font-weight:600; color: var(--accent-dark); margin-bottom:4px; }
-  .pin-caja p { font-size:.8em; color: var(--text-2); margin-bottom:16px; }
-  .pin-caja input {
-    width:100%; padding:12px; font-size:1.3em; text-align:center; letter-spacing:.3em; font-family:inherit;
-    border:1px solid var(--border-strong); border-radius:6px; margin-bottom:12px; background: var(--surface); color: var(--text);
-  }
+  .pin-caja { width:100%; max-width:300px; text-align:center; }
+  .pin-caja .gato { display:none; }
+  .pin-caja h2 { font-size:1.6em; font-weight:700; letter-spacing:-.022em; margin-bottom:8px; }
+  .pin-caja h2 em { font-style:normal; color: var(--text-3); font-weight:400; }
+  .pin-caja p { font-size:.84em; color: var(--text-2); margin-bottom:22px; line-height:1.5; }
+  .pin-caja input { width:100%; padding:13px; font-size:1.3em; text-align:center; letter-spacing:.4em; border:1px solid transparent; border-radius:12px; margin-bottom:12px; background: var(--surface); color: var(--text); }
   .pin-caja input:focus { outline:none; border-color: var(--accent); }
-  .pin-caja .btn { width:100%; padding:11px; font-size:.9em; }
-  .pin-error { color: var(--bad); font-size:.8em; min-height:1.2em; margin-bottom:8px; }
+  .pin-caja .btn { width:100%; padding:13px; font-size:.95em; border-radius: 12px; }
+  .pin-error { color: var(--bad); font-size:.82em; min-height:1.2em; margin-bottom:8px; }
 
-  /* ---- Avisos de marcaje ---- */
-  .card.avisos { border-left: 3px solid var(--accent); }
-  .card.avisos.con-pendientes { border-left-color: var(--bad); }
-  .card.avisos.con-pendientes h2 { color: var(--bad); border-left-color: var(--bad); }
-  .avisos-vacio { font-size: .82em; color: var(--text-2); }
-  .aviso-item {
-    border: 1px solid #f1c7c2; background: #fdf3f2; border-radius: 6px;
-    padding: 12px 14px; margin-bottom: 10px;
-  }
-  .aviso-item.destacado { box-shadow: 0 0 0 2px var(--bad); }
-  .aviso-titulo { font-size: .9em; font-weight: 600; color: #8f2a20; margin-bottom: 2px; }
-  .aviso-sub { font-size: .76em; color: var(--text-2); margin-bottom: 10px; }
-  .aviso-acciones { display:flex; gap:8px; flex-wrap:wrap; margin-top: 10px; }
-  .btn.peligro { background: var(--bad); border-color: var(--bad); color: #fff; }
-  .btn.peligro:hover { background: #b9322a; border-color: #b9322a; }
-  details.avisos-extra { margin-top: 10px; font-size: .82em; }
-  details.avisos-extra summary { cursor: pointer; color: var(--accent-dark); font-weight: 500; padding: 4px 0; }
-  .hist-item { display:flex; justify-content:space-between; gap:8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: .95em; }
-  .hist-item:last-child { border-bottom: none; }
-  .estado-chip { font-size: .78em; font-weight: 600; padding: 1px 8px; border-radius: 10px; white-space: nowrap; align-self: flex-start; }
-  .estado-chip.Enviado { background:#dbeafe; color:#1e4f9a; }
-  .estado-chip.Aclarado { background:#e6e8fb; color:#3730a3; }
-  .estado-chip.Resuelto { background:#dcf5e7; color:#17663e; }
-  .estado-chip.Descartado { background:#f1f1f0; color:#78716c; }
-  .aviso-config { font-size: .78em; color: #8a5a00; background:#fdf0d5; border:1px solid #f2d58f; border-radius:6px; padding:8px 10px; margin-bottom:10px; }
+  /* ---- Panel de ajustes ---- */
+  .cfg-overlay { position:fixed; inset:0; background: var(--bg); z-index:50; overflow-y:auto; display:none; }
+  .cfg-overlay.abierto { display:block; }
+  .cfg-top { position:sticky; top:0; z-index:2; background: rgba(0,0,0,.82); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top)); display:flex; align-items:center; justify-content:space-between; min-height:58px; }
+  .cfg-top h2 { font-size:1.25em; font-weight:700; letter-spacing:-.02em; }
+  .cfg-tabs { position:sticky; top:58px; z-index:1; background: rgba(0,0,0,.82); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom:.5px solid var(--border); display:flex; gap:6px; overflow-x:auto; padding: 8px 14px 10px; scrollbar-width:none; }
+  .cfg-tabs::-webkit-scrollbar { display:none; }
+  .cfg-tab { flex-shrink:0; border:none; background: transparent; color: var(--text-2); border-radius:8px; padding: 7px 12px; font-size:.84em; font-weight:500; cursor:pointer; }
+  .cfg-tab.activa { background: rgba(118,118,128,.32); color: var(--text); }
+  .cfg-cuerpo { max-width:720px; margin:0 auto; padding:16px; padding-bottom: max(32px, env(safe-area-inset-bottom)); }
+  .cfg-seccion { display:none; }
+  .cfg-seccion.activa { display:block; }
+  .cfg-desc { font-size:.84em; color: var(--text-2); margin-bottom:16px; line-height:1.5; }
+  .cfg-campo { margin-bottom:14px; min-width:0; }
+  .cfg-campo label.titulo { display:block; font-size:.8em; font-weight:500; color: var(--text-2); margin-bottom:5px; }
+  .cfg-campo .nota { font-size:.74em; color: var(--text-3); margin-top:4px; }
+  .cfg-campo textarea { min-height:64px; resize:vertical; }
+  .cfg-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap:0 12px; }
+  .cfg-subtitulo { font-size:.95em; font-weight:600; color: var(--text); margin: 22px 0 10px; }
+  .cfg-guardar { display:flex; gap:8px; align-items:center; margin-top:6px; flex-wrap:wrap; }
+  .switch { display:flex; align-items:center; gap:12px; cursor:pointer; font-size:.9em; }
+  .switch input { display:none; }
+  .switch .pista { width:48px; height:29px; border-radius:15px; background: #39393d; position:relative; transition: background .2s; flex-shrink:0; }
+  .switch .pista::after { content:''; position:absolute; top:2px; left:2px; width:25px; height:25px; border-radius:50%; background:#fff; transition:left .2s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  .switch input:checked + .pista { background: var(--ok); }
+  .switch input:checked + .pista::after { left:21px; }
+  .fer-nav { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .fer-nav strong { font-size:1em; font-weight:600; }
+  .fer-lista { border-radius:12px; background: var(--surface); padding: 0 12px; }
+  .fer-fila { display:flex; align-items:center; gap:10px; padding: 10px 0; border-bottom:.5px solid var(--border); font-size:.82em; }
+  .fer-fila:last-child { border-bottom:none; }
+  .fer-fila .f { width:84px; flex-shrink:0; }
+  .fer-fila .d { color: var(--text-3); width:64px; flex-shrink:0; }
+  .fer-fila .t { flex:1; min-width:0; }
+  .fer-fila.quitado .t, .fer-fila.quitado .f { text-decoration: line-through; color: var(--text-3); }
+  .origen { font-size:.72em; font-weight:500; padding:1px 8px; border-radius:999px; flex-shrink:0; }
+  .origen.Legal { background: rgba(118,118,128,.24); color: var(--text-2); } .origen.Manual { background: var(--accent-soft); color: var(--accent-dark); }
+  .sis-fila { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-bottom:.5px solid var(--border); font-size:.88em; }
+  .sis-fila:last-child { border-bottom:none; }
+  .sis-fila .sub, .sub { font-size:.86em; color: var(--text-3); margin-top:2px; }
+  .pill { font-size:.76em; font-weight:500; padding:2px 9px; border-radius:999px; }
+  .pill.on { background: rgba(48,209,88,.15); color:#5fd983; } .pill.off { background: rgba(118,118,128,.24); color: var(--text-3); }
+  .temas { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:8px; }
+  .tema { border:1px solid transparent; border-radius:12px; padding:12px; cursor:pointer; background: var(--surface); color: var(--text); font-size:.86em; font-weight:500; display:flex; align-items:center; gap:9px; }
+  .tema .muestra { width:16px; height:16px; border-radius:50%; flex-shrink:0; }
+  .tema.activo { border-color: var(--accent); }
+  .centro-fila { display:flex; align-items:center; gap:10px; padding: 11px 12px; border-radius:10px; margin-bottom:6px; background: var(--surface); font-size:.9em; font-weight:500; }
+  .centro-fila .pt { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .centro-fila span.n { flex:1; }
 
-  @media (max-width:600px){
-    .card { padding: 14px; }
-    .ticket { width:7px; height:7px; }
-    .stat { padding: 8px 6px; }
-    .stat .num { font-size: 1.15em; }
-    .stat .lbl { font-size: .62em; }
+  @media (max-width:600px) {
+    .card { padding: 16px; }
+    .stat { padding: 9px 4px; } .stat .num { font-size:1.2em; } .stat .lbl { font-size:.56em; }
   }
-  @media (max-width:360px){
-    .ticket { width:6px; height:6px; }
-    .dia { padding: 3px 2px; }
-  }
+  @media (max-width:360px) { .ticket { width:5px; height:5px; } .dia { padding:3px 2px; } }
 </style>
 </head>
 <body>
@@ -332,12 +343,15 @@
 
   <div class="header">
     <div>
-      <h1>Monitor de Marcaje</h1>
+      <h1>Marcaje <em>&amp;</em> Turnos</h1>
       <p>CESFAM Quinta Bella</p>
     </div>
-    <button class="btn-config" onclick="abrirConfig()" aria-label="Abrir configuración">⚙ Configuración</button>
+    <button class="btn-config" onclick="abrirConfig()" aria-label="Abrir configuración">⚙ Ajustes</button>
   </div>
 
+  <div class="frase"><span id="fraseTexto"></span><span class="gatos">Loki · Kurochan · Haku</span></div>
+
+  <section class="vista activa" data-vista="marcaje">
   <div class="card avisos" id="avisosCard">
     <h2>Avisos de marcaje</h2>
     <div id="avisosConfig" class="aviso-config" style="display:none;"></div>
@@ -388,30 +402,18 @@
       <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
     </div>
     <div class="calendario" id="calendario"></div>
-
-    <div class="leyenda">
-      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket verde"></div></div><span>Entrada y salida registradas</span></div>
-      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket rojo"></div></div><span>Falta un marcaje (entrada · salida)</span></div>
-      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket rojo"></div><div class="ticket rojo"></div></div><span>Sin marcaje</span></div>
-      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket amarillo"></div></div><span>Medio día libre: no cuenta como falta</span></div>
-      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket gris"></div></div><span>Marcaje en día libre (informativo)</span></div>
-      <div class="leyenda-item"><span class="sigla turno">T</span><span>Turno (Finanzas Médicas)</span></div>
-      <div class="leyenda-item"><span class="sigla feriado">F</span><span>Feriado</span></div>
-      <div class="leyenda-item"><span class="sigla diaadmin">A</span><span>Día administrativo</span></div>
-      <div class="leyenda-item"><span class="sigla medio">½</span><span>Medio día administrativo / permiso</span></div>
-      <div class="leyenda-item"><span class="sigla vacaciones">V</span><span>Vacaciones</span></div>
-      <div class="leyenda-item"><span class="sigla licencia">L</span><span>Licencia médica</span></div>
-      <div class="leyenda-item"><span class="sigla comision">C</span><span>Comisión / capacitación</span></div>
-      <div class="leyenda-item"><span class="sigla permiso">P</span><span>Permiso sin goce / otro</span></div>
-      <div class="leyenda-item"><span class="sigla vacio"></span><span>No aplica marcaje</span></div>
-    </div>
-
     <div class="detalle-panel" id="detallePanel">
       <span class="cerrar" onclick="cerrarDetalle()" aria-label="Cerrar">✕</span>
       <h3 id="detalleTitulo"></h3>
       <p id="detalleEntrada"></p>
       <p id="detalleSalida"></p>
       <p id="detalleTurno"></p>
+      <div class="bloque-turno" id="bloqueTurno">
+        <div class="tit">Turno</div>
+        <div class="turno-info" id="turnoEstado"></div>
+        <div class="chips" id="turnoChips"></div>
+        <div class="aviso-acciones" id="turnoAcciones" style="margin-top:0;"></div>
+      </div>
       <div id="bloqueCorregir" style="margin-top:12px; display:none;">
         <button type="button" class="btn chico" onclick="mostrarFormularioCorregir()">Corregir este día</button>
         <div id="formCorregirWrap" style="display:none; margin-top:10px;">
@@ -430,8 +432,76 @@
         </div>
       </div>
     </div>
+
+    <details class="leyenda-wrap"><summary>Ver leyenda</summary>
+    <div class="leyenda">
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket verde"></div></div><span>Entrada y salida registradas</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket rojo"></div></div><span>Falta un marcaje (entrada · salida)</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket rojo"></div><div class="ticket rojo"></div></div><span>Sin marcaje</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket amarillo"></div></div><span>Medio día libre: no cuenta como falta</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket gris"></div></div><span>Marcaje en día libre (informativo)</span></div>
+      <div class="leyenda-item"><span class="sigla turno">T</span><span>Turno (color según el centro)</span></div>
+      <div class="leyenda-item"><span class="sigla feriado">F</span><span>Feriado</span></div>
+      <div class="leyenda-item"><span class="sigla diaadmin">A</span><span>Día administrativo</span></div>
+      <div class="leyenda-item"><span class="sigla medio">½</span><span>Medio día administrativo / permiso</span></div>
+      <div class="leyenda-item"><span class="sigla vacaciones">V</span><span>Vacaciones</span></div>
+      <div class="leyenda-item"><span class="sigla licencia">L</span><span>Licencia médica</span></div>
+      <div class="leyenda-item"><span class="sigla comision">C</span><span>Comisión / capacitación</span></div>
+      <div class="leyenda-item"><span class="sigla permiso">P</span><span>Permiso sin goce / otro</span></div>
+      <div class="leyenda-item"><span class="sigla vacio"></span><span>No aplica marcaje</span></div>
+    </div>
+    </details>
+
   </div>
 
+  </section>
+
+  <section class="vista" data-vista="turnos">
+    <div class="card">
+      <div class="nav">
+        <button onclick="cambiarMes(-1)" aria-label="Mes anterior">‹</button>
+        <div class="mes" id="mesLabelTurnos">…</div>
+        <button onclick="cambiarMes(1)" aria-label="Mes siguiente">›</button>
+      </div>
+      <div class="duo" id="turnosResumen" style="margin-top:0;"></div>
+    </div>
+
+    <div class="card">
+      <h2>Agregar turno</h2>
+      <div class="form-fila">
+        <label class="form-campo">Fecha<input type="date" id="turnoFecha" onchange="actualizarInfoTurnoNuevo()"></label>
+        <label class="form-campo">Centro<select id="turnoCentro"></select></label>
+      </div>
+      <div class="turno-info" id="turnoNuevoInfo" style="margin-top:10px;"></div>
+      <button type="button" class="btn primario" id="btnTurnoNuevo" onclick="agregarTurnoUI()">Agregar turno</button>
+      <div class="sub" style="margin-top:10px; font-size:.72em;">También puedes tocar un día en el calendario de Marcaje. Las horas son fijas: 3 h de lunes a jueves, 4 h viernes y sábado.</div>
+    </div>
+
+    <div class="card">
+      <h2>Turnos del mes</h2>
+      <div id="turnosLista"><div class="vacio-txt">Cargando…</div></div>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="ingresos">
+    <div id="ingBanner" class="estado-banner cargando">Cargando ingresos…</div>
+    <div class="card"><h2>Mes en curso <span class="anio-chip" id="ingMesNombre"></span></h2><div id="ingMes"></div></div>
+    <div class="card"><h2>Horas por centro</h2><div id="ingCentros"></div></div>
+    <div class="card">
+      <h2>Ingresos anuales</h2>
+      <div class="nav" style="margin-bottom:8px;">
+        <button onclick="cambiarAnioIngresos(-1)" aria-label="Año anterior">‹</button>
+        <div class="mes" id="ingAnio">–</div>
+        <button onclick="cambiarAnioIngresos(1)" aria-label="Año siguiente">›</button>
+      </div>
+      <div class="duo" id="ingAnualTotales" style="margin-top:0;"></div>
+      <div class="anual" id="ingAnual"></div>
+      <div class="anual-detalle" id="ingAnualDetalle">Toca un mes para ver su detalle.</div>
+    </div>
+    <div class="card"><h2>Historial</h2><div id="ingHistorial"></div></div>
+  </section>
+
+  <section class="vista" data-vista="permisos">
   <div class="card">
     <h2>Saldos y solicitudes <span class="anio-chip" id="saldosAnio"></span></h2>
     <div class="stats-row" style="grid-template-columns: repeat(2,1fr);">
@@ -485,27 +555,42 @@
       <button type="submit" class="btn primario" id="btnLicencia" style="align-self:flex-start;">Registrar licencia</button>
     </form>
   </div>
+  </section>
 
 </div>
 
+<nav class="tabbar"><div class="tabbar-inner">
+  <button class="tab activa" data-vista="marcaje" onclick="mostrarVista('marcaje')">
+    <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 15l2 2 4-4"/></svg>Marcaje<span class="punto"></span></button>
+  <button class="tab" data-vista="turnos" onclick="mostrarVista('turnos')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Turnos</button>
+  <button class="tab" data-vista="ingresos" onclick="mostrarVista('ingresos')">
+    <svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>Ingresos</button>
+  <button class="tab" data-vista="permisos" onclick="mostrarVista('permisos')">
+    <svg viewBox="0 0 24 24"><path d="M7 3.5h7l4 4V20.500H7z"/><path d="M14 3.5v4h4M10 12h5M10 16h5"/></svg>Permisos</button>
+</div></nav>
+<div id="toast" style="position:fixed; left:50%; bottom:92px; transform:translateX(-50%); z-index:60; display:none; padding:11px 20px; border-radius:30px; font-size:.8em; font-weight:700; max-width:90vw; text-align:center; box-shadow:0 6px 24px rgba(0,0,0,.6);"></div>
+
 <div class="pin-overlay" id="pinPanel">
   <form class="pin-caja" id="pinForm" autocomplete="off">
-    <h2>Monitor de Marcaje</h2>
-    <p>Ingresa tu PIN. Se pide una sola vez en este dispositivo.</p>
+    <div class="gato">🐱</div>
+    <h2>Marcaje <em>&amp;</em> Turnos</h2>
+    <p id="pinFrase"></p>
     <div class="pin-error" id="pinError"></div>
-    <input type="password" id="pinEntrada" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="PIN">
+    <input type="password" id="pinEntrada" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="PIN" placeholder="PIN">
     <button type="submit" class="btn primario">Entrar</button>
   </form>
 </div>
 
 <div class="cfg-overlay" id="cfgPanel" aria-hidden="true">
   <div class="cfg-top">
-    <h2>Configuración</h2>
+    <h2>Ajustes</h2>
     <button class="btn-config" onclick="cerrarConfig()">Cerrar</button>
   </div>
   <div class="cfg-tabs" id="cfgTabs">
     <button class="cfg-tab activa" data-sec="avisos">Avisos</button>
     <button class="cfg-tab" data-sec="horarios">Horarios</button>
+    <button class="cfg-tab" data-sec="turnos">Turnos</button>
     <button class="cfg-tab" data-sec="feriados">Feriados</button>
     <button class="cfg-tab" data-sec="saldos">Saldos</button>
     <button class="cfg-tab" data-sec="seguridad">Seguridad</button>
@@ -527,8 +612,27 @@
       <div class="cfg-guardar"><button class="btn primario" onclick="guardarSeccion('horarios', this)">Guardar cambios</button></div>
     </section>
 
+    <section class="cfg-seccion" data-sec="turnos">
+      <p class="cfg-desc">Tarifas y centros para calcular tus ingresos por turnos. Las horas son fijas según el día.</p>
+      <div class="cfg-subtitulo">Tarifas por hora</div>
+      <div class="cfg-grid">
+        <div class="cfg-campo"><label class="titulo">Lunes a viernes ($)</label><input type="number" id="ajValorLV" inputmode="numeric" min="0"></div>
+        <div class="cfg-campo"><label class="titulo">Sábado ($)</label><input type="number" id="ajValorSab" inputmode="numeric" min="0"></div>
+      </div>
+      <div class="cfg-subtitulo">Tipo de pago</div>
+      <div class="cfg-campo"><label class="switch"><input type="checkbox" id="ajBoleta" onchange="document.getElementById('ajFactorWrap').style.display=this.checked?'block':'none'"><span class="pista"></span><span>Boleta de honorarios (aplica descuento por retención)</span></label></div>
+      <div class="cfg-campo" id="ajFactorWrap"><label class="titulo">Factor de descuento</label><input type="number" id="ajFactor" step="0.001" min="0" max="1"><div class="nota">Ej: 0.825 equivale a una retención de 17,5 %.</div></div>
+      <div class="cfg-subtitulo">Centros de salud</div>
+      <div id="ajCentros"></div>
+      <div class="cfg-grid" style="grid-template-columns: 1fr auto; align-items:end;">
+        <div class="cfg-campo"><input type="text" id="ajNuevoCentro" maxlength="40" placeholder="Nuevo centro…"></div>
+        <div class="cfg-campo"><button class="btn" onclick="agregarCentroUI()">Agregar</button></div>
+      </div>
+      <div class="cfg-guardar"><button class="btn primario" onclick="guardarAjustesTurnosUI(this)">Guardar cambios</button></div>
+    </section>
+
     <section class="cfg-seccion" data-sec="feriados">
-      <p class="cfg-desc">Los feriados legales se calculan solos según la ley. Las elecciones y feriados extraordinarios agrégalos aquí; también puedes quitar uno que no aplique.</p>
+      <p class="cfg-desc">Los feriados legales se calculan solos según la ley y valen para el marcaje y para los turnos. Las elecciones y feriados extraordinarios agrégalos aquí; también puedes quitar uno que no aplique.</p>
       <div class="fer-nav">
         <button class="btn chico" onclick="cambiarAnioFeriados(-1)">‹</button>
         <strong id="ferAnio">–</strong>
@@ -672,6 +776,7 @@ async function cargarMes() {
     }
   });
 
+  if (data.ajustesTurnos) ajustesTurnos = data.ajustesTurnos;
   feriadosMap = new Map(Object.entries(data.feriados || {}));
   especialesMap = new Map(Object.entries(data.especiales || {}));
   esperadosSet = new Set(data.esperados || []);
@@ -696,6 +801,7 @@ async function cargarMes() {
   cargarSaldos(año, data.saldos);
   cargarListaSolicitudes(data.solicitudes);
   cargarAvisos(data.avisos);
+  renderTurnos();
 }
 
 function crearTickets(info, colorFaltante) {
@@ -709,9 +815,10 @@ function crearTickets(info, colorFaltante) {
   return tickets;
 }
 
-function agregarMarca(div, texto) {
+function agregarMarca(div, texto, color) {
   const marca = document.createElement('div');
   marca.className = 'estrella' + (texto === 'T' ? ' turno' : '');
+  if (color) marca.style.color = color;
   marca.textContent = texto;
   div.appendChild(marca);
 }
@@ -770,7 +877,7 @@ function renderizarCalendario(año, mesIdx) {
     } else if (esFuturo) {
       // 3) Día futuro: solo turno planificado y/o medio día ya registrado
       div.classList.add('no-trackeado');
-      if (info && info.turno) agregarMarca(div, 'T');
+      if (info && info.turno) agregarMarca(div, 'T', colorTurnoDe(fechaStr));
       if (especial && especial.medioDia) agregarBadgeMedio(div);
       if ((info && info.turno) || especial) {
         div.onclick = () => mostrarDetalleFuturo(fechaStr, info || {}, especial);
@@ -784,7 +891,7 @@ function renderizarCalendario(año, mesIdx) {
         const infoDia = info || { entrada: false, salida: false, turno: false, tipoTurno: '', horasTurno: '', horaEntrada: '', horaSalida: '' };
         const esMedio = !!(especial && especial.medioDia);
         div.appendChild(crearTickets(infoDia, esMedio ? 'amarillo' : 'rojo'));
-        if (conTurno) agregarMarca(div, 'T');
+        if (conTurno) agregarMarca(div, 'T', colorTurnoDe(fechaStr));
         if (esMedio) { div.classList.add('medio-dia'); agregarBadgeMedio(div); }
         div.onclick = () => mostrarDetalle(fechaStr, infoDia, especial);
       } else {
@@ -792,6 +899,7 @@ function renderizarCalendario(año, mesIdx) {
       }
     }
 
+    if (!div.onclick) div.onclick = () => mostrarDetalleSimple(fechaStr, esFuturo);
     cal.appendChild(div);
   }
 }
@@ -848,6 +956,7 @@ function textoMarcaje(registrado, hora, colorFaltante) {
 }
 
 function mostrarDetalle(fecha, info, especial) {
+  prepararBloqueTurno(fecha);
   fechaSeleccionadaDetalle = fecha;
   const panel = document.getElementById('detallePanel');
   const [d, m, a] = fecha.split('/');
@@ -879,6 +988,7 @@ function mostrarDetalle(fecha, info, especial) {
 
 /** Detalle de un día libre (feriado o permiso de día completo). */
 function mostrarDetalleEspecial(fecha, titulo, notas, info, esFuturo) {
+  prepararBloqueTurno(fecha);
   fechaSeleccionadaDetalle = esFuturo ? null : fecha;
   const tieneMarcaje = !!(info && (info.entrada || info.salida));
   document.getElementById('detalleTitulo').textContent = `${fecha} · ${titulo}`;
@@ -925,6 +1035,7 @@ async function enviarCorreccionMarcaje() {
 }
 
 function mostrarDetalleFuturo(fecha, info, especial) {
+  prepararBloqueTurno(fecha);
   fechaSeleccionadaDetalle = null;
   document.getElementById('detalleTitulo').textContent = `${fecha}`;
   document.getElementById('detalleEntrada').textContent = 'Este día aún no ocurre.';
@@ -939,6 +1050,7 @@ function mostrarDetalleFuturo(fecha, info, especial) {
 }
 
 function cerrarDetalle() {
+  fechaTurnoDetalle = null;
   document.getElementById('detallePanel').style.display = 'none';
 }
 
@@ -1333,6 +1445,7 @@ function renderizarAvisos(data) {
   }
 
   card.classList.toggle('con-pendientes', data.pendientes.length > 0);
+  document.querySelector('.tab[data-vista="marcaje"]').classList.toggle('con-alerta', data.pendientes.length > 0);
 
   if (data.pendientes.length === 0) {
     const v = document.createElement('div');
@@ -1527,6 +1640,7 @@ async function abrirConfig(seccion) {
     cfgDatos = data;
     renderizarCamposCfg();
     renderizarFeriados(data.feriados);
+    renderizarAjustesTurnos(data.ajustesTurnos);
     renderizarSistema(data.sistema);
     actualizarEstadoPinLocal();
     bannerCfg('', '');
@@ -1826,28 +1940,28 @@ async function accionSistema(op, btn) {
 
 // ---- Apariencia (solo este dispositivo) ----
 const TEMAS = {
-  'Verde azulado': ['#0f766e', '#115e59', '#e6f4f1'],
-  'Azul': ['#1d4ed8', '#1e3a8a', '#e8eefc'],
-  'Burdeo': ['#9f1239', '#7f1d1d', '#fbeaee'],
-  'Morado': ['#6d28d9', '#4c1d95', '#f0eafd'],
-  'Grafito': ['#3f3f46', '#27272a', '#efefef']
+  'Azul': ['#0a84ff', '#4aa3ff', 'rgba(10,132,255,.16)'],
+  'Grafito': ['#8e8e93', '#c7c7cc', 'rgba(142,142,147,.2)'],
+  'Índigo': ['#5e5ce6', '#9d9bf2', 'rgba(94,92,230,.2)'],
+  'Verde': ['#28b463', '#5fd983', 'rgba(48,209,88,.15)'],
+  'Naranja': ['#e8890c', '#ffb340', 'rgba(255,159,10,.15)']
 };
 const CLAVE_TEMA = 'monitorMarcajeTema';
 
 function aplicarTema(nombre) {
-  const t = TEMAS[nombre] || TEMAS['Verde azulado'];
+  const t = TEMAS[nombre] || TEMAS['Azul'];
   const r = document.documentElement.style;
   r.setProperty('--accent', t[0]);
   r.setProperty('--accent-dark', t[1]);
   r.setProperty('--accent-soft', t[2]);
 }
 function temaActual() {
-  try { return localStorage.getItem(CLAVE_TEMA) || 'Verde azulado'; } catch (e) { return 'Verde azulado'; }
+  try { return (TEMAS[localStorage.getItem(CLAVE_TEMA)] ? localStorage.getItem(CLAVE_TEMA) : 'Azul'); } catch (e) { return 'Azul'; }
 }
 function renderizarTemas() {
   const cont = document.getElementById('temas');
   cont.innerHTML = '';
-  const actual = temaActual();
+  const actual = TEMAS[temaActual()] ? temaActual() : 'Azul';
   Object.entries(TEMAS).forEach(([nombre, colores]) => {
     const b = document.createElement('button');
     b.className = 'tema' + (nombre === actual ? ' activo' : '');
@@ -1865,6 +1979,572 @@ function renderizarTemas() {
 aplicarTema(temaActual());
 
 if (new URLSearchParams(location.search).get('config')) abrirConfig();
+
+// ======================================================
+// FRASES DEL DÍA — Loki, Kurochan y Haku
+// ======================================================
+const FRASES = [
+  "🐱 Loki ronronea cada vez que anotas un turno. ¡Hazlo feliz!",
+  "🖤 Kurochan te mira desde las sombras. Sabe que tienes turno pendiente.",
+  "🤍 Haku ya está sentado sobre el teclado. Dice que hoy sí marcaste.",
+  "☕ Café, turno anotado, Loki en el regazo. Eso es una buena vida.",
+  "🐱 Loki duerme 18h. Tú trabajas las otras 6. Equipo perfecto.",
+  "🖤 Kurochan no paga arriendo. Tú sí. ¡Registra ese turno!",
+  "🤍 Haku revisó el calendario antes que tú. Con la pata.",
+  "💚 Cada hora anotada es una hora cobrada. Loki lo aprueba.",
+  "🐱 Loki atacó tu corazón con su ternura. Ahora anota el turno.",
+  "🖤 Kurochan es misterioso. Tu sueldo no debería serlo. ¡Anota!",
+  "🤍 Haku no entiende de relojes control, pero sabe a qué hora vuelves.",
+  "☕ Primero el café. Después el turno. Siempre en ese orden.",
+  "🐱 Loki no tiene miedo a los lunes. Tú tampoco. ¡Dale!",
+  "🖤 Kurochan ronronea bajito cuando guardas un registro.",
+  "🤍 Haku marca entrada en tu almohada todos los días, puntual.",
+  "💊 Salvando pacientes de día, anotando turnos de noche.",
+  "🐱 Loki, Kurochan y Haku aprueban este turno. Guárdalo.",
+  "🖤 Kurochan te espera en casa. Termina el turno y corre.",
+  "☕ Sin café no hay turnos. Sin turnos no hay croquetas para los gatos.",
+  "🤍 Haku pide una sola cosa: que no olvides marcar la salida.",
+  "🐱 Loki se estira y bosteza. Señal de que es hora de anotar.",
+  "🖤 Kurochan: silencioso, elegante, siempre presente. Como tu sueldo bien anotado.",
+  "💚 Cada extensión es un 'te quiero' a tu cuenta bancaria.",
+  "🤍 Haku se quedó dormido esperando. Marca y vuelve a casa.",
+  "🐱 Loki maúlla. Probablemente quiere croquetas. O que anotes el turno.",
+  "🖤 Kurochan vigila que no te olvides de registrar.",
+  "☕ El café es temporal. Los turnos bien registrados son para siempre.",
+  "🐱 Loki + Kurochan + Haku + turnos anotados = vida perfecta.",
+  "🖤 Kurochan no regala ni una caricia. Tú tampoco regales ni una hora.",
+  "🤍 Haku cuenta las horas de tu turno. En siestas.",
+  "💚 Hoy también fuiste increíble. El sueldo también, si anotas.",
+  "🐱 Loki duerme en tu laptop. Señal de que debes anotar en el celular.",
+  "🖤 Kurochan aprueba con un pestañeo lento. Guardado.",
+  "☕ Tres gatos te esperan. Más razón para terminar el turno y volver.",
+  "🤍 Haku no perdona un olvido de marcaje. Bueno, sí, pero te mira feo.",
+  "🐱 Loki maúlla a las 3am. Pero tus turnos igual hay que anotarlos de día.",
+  "🖤 Kurochan es negro como el café. Y tú necesitas los dos para sobrevivir.",
+  "💚 No hay turno pequeño. Loki, Kurochan y Haku lo saben."
+];
+function fraseDelDia() {
+  const hoy = new Date();
+  const dia = Math.floor((hoy - new Date(hoy.getFullYear(), 0, 0)) / 864e5);
+  return FRASES[dia % FRASES.length];
+}
+document.getElementById('fraseTexto').textContent = fraseDelDia();
+document.getElementById('pinFrase').textContent = fraseDelDia();
+
+function toast(msg, ok) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = 'rgba(44,44,46,.96)';
+  t.style.border = 'none';
+  t.style.color = ok === false ? '#ff8a82' : '#f5f5f7';
+  t.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.style.display = 'none'; }, ok === false ? 4500 : 2600);
+}
+
+// ======================================================
+// VISTAS (barra inferior)
+// ======================================================
+let vistaActual = 'marcaje';
+function mostrarVista(nombre) {
+  vistaActual = nombre;
+  document.querySelectorAll('.vista').forEach(v => v.classList.toggle('activa', v.dataset.vista === nombre));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activa', t.dataset.vista === nombre));
+  window.scrollTo(0, 0);
+  if (nombre === 'turnos') renderTurnos();
+  if (nombre === 'ingresos') cargarIngresos(false);
+}
+
+// ======================================================
+// TURNOS
+// ======================================================
+let ajustesTurnos = { valorLV: 15147, valorSab: 17706, factor: 0.825, boleta: false, centros: ['P. Hevia', 'Quinta Bella', 'Recoleta'] };
+let ultimoCentro = '';
+const PALETA_CENTROS = ['#5fb97a', '#7f8fe0', '#d9736b', '#5bb5cc', '#cfb54a', '#b98ad6', '#d99a5b', '#8e8e93'];
+const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+function colorCentro(nombre) {
+  let i = ajustesTurnos.centros.indexOf(nombre);
+  if (i === -1) i = Math.abs([...String(nombre)].reduce((a, c) => a + c.charCodeAt(0), 0));
+  return PALETA_CENTROS[i % PALETA_CENTROS.length];
+}
+function colorTurnoDe(fecha) {
+  const inf = turnoInfoMap.get(fecha);
+  return inf ? colorCentro(inf.centro) : '';
+}
+function fmtCLP(n) {
+  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n || 0);
+}
+/** Horas fijas según el día: lun–jue 3 h; vie y sáb 4 h; domingo no hay turnos. */
+function tarifaDia(dow) {
+  const horas = dow === 0 ? 0 : (dow === 5 || dow === 6 ? 4 : 3);
+  const esSab = dow === 6;
+  const valor = esSab ? ajustesTurnos.valorSab : ajustesTurnos.valorLV;
+  return { horas, esSab, valor, total: horas * valor };
+}
+function fechaADateLocal(fecha) { const [d, m, a] = fecha.split('/').map(Number); return new Date(a, m - 1, d); }
+function ddmmDeDate(d) { return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; }
+function isoDeDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+/** Bloque "Turno" dentro del detalle de un día del calendario. */
+let fechaTurnoDetalle = null;
+let centroTurnoDetalle = '';
+function prepararBloqueTurno(fecha) {
+  fechaTurnoDetalle = fecha;
+  const cont = document.getElementById('bloqueTurno');
+  const estado = document.getElementById('turnoEstado');
+  const chips = document.getElementById('turnoChips');
+  const acciones = document.getElementById('turnoAcciones');
+  const dow = fechaADateLocal(fecha).getDay();
+  const existente = turnoInfoMap.get(fecha);
+  cont.style.display = 'block';
+  chips.innerHTML = ''; acciones.innerHTML = '';
+
+  if (!existente && (dow === 0 || feriadosMap.has(fecha))) {
+    estado.textContent = dow === 0 ? 'Domingo: no se registran turnos.' : 'Feriado: no se registran turnos.';
+    return;
+  }
+  const t = tarifaDia(dow);
+  centroTurnoDetalle = existente ? existente.centro : (ultimoCentro || ajustesTurnos.centros[0]);
+  const centros = ajustesTurnos.centros.slice();
+  if (existente && centros.indexOf(existente.centro) === -1) centros.push(existente.centro);
+
+  const pintar = () => {
+    chips.innerHTML = '';
+    centros.forEach(c => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (c === centroTurnoDetalle ? ' sel' : '');
+      const col = colorCentro(c);
+      if (c === centroTurnoDetalle) b.style.color = col;
+      const pt = document.createElement('span'); pt.className = 'pt'; pt.style.background = col;
+      const tx = document.createElement('span'); tx.textContent = c;
+      b.appendChild(pt); b.appendChild(tx);
+      b.onclick = () => { centroTurnoDetalle = c; pintar(); };
+      chips.appendChild(b);
+    });
+    acciones.innerHTML = '';
+    const guardar = document.createElement('button');
+    guardar.type = 'button'; guardar.className = 'btn primario';
+    guardar.textContent = existente ? 'Cambiar centro' : 'Agregar turno';
+    guardar.disabled = !!existente && existente.centro === centroTurnoDetalle;
+    guardar.onclick = () => guardarTurnoUI(fecha, centroTurnoDetalle, guardar);
+    acciones.appendChild(guardar);
+    if (existente) {
+      const quitar = document.createElement('button');
+      quitar.type = 'button'; quitar.className = 'btn';
+      quitar.textContent = 'Quitar turno';
+      quitar.onclick = () => eliminarTurnoUI(fecha, quitar);
+      acciones.appendChild(quitar);
+    }
+  };
+  estado.textContent = (existente ? `Turno registrado en ${existente.centro} · ` : 'Sin turno · ') + `${t.horas} h · ${fmtCLP(t.total)}`;
+  pintar();
+}
+
+async function guardarTurnoUI(fecha, centro, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const data = await llamarConPin({ accion: 'guardarTurno', fecha, centro });
+    toast(data.mensaje || (data.success ? 'Turno guardado.' : 'No se pudo guardar.'), data.success);
+    if (data.success) {
+      ultimoCentro = centro;
+      ingresosCache = null;
+      cerrarDetalle();
+      await cargarMes();
+      if (vistaActual === 'ingresos') cargarIngresos(true);
+    }
+    return data.success;
+  } catch (e) {
+    toast(e.message, false);
+    return false;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function eliminarTurnoUI(fecha, btn) {
+  if (!confirm(`¿Quitar el turno del ${fecha}?`)) return;
+  if (btn) btn.disabled = true;
+  try {
+    const data = await llamarConPin({ accion: 'eliminarTurno', fecha });
+    toast(data.mensaje || (data.success ? 'Turno eliminado.' : 'No se pudo eliminar.'), data.success);
+    if (data.success) {
+      ingresosCache = null;
+      cerrarDetalle();
+      await cargarMes();
+      if (vistaActual === 'ingresos') cargarIngresos(true);
+    }
+  } catch (e) {
+    toast(e.message, false);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+/** Detalle de un día sin marcaje ni permiso (fin de semana, día futuro, etc.). */
+function mostrarDetalleSimple(fecha, esFuturo) {
+  prepararBloqueTurno(fecha);
+  fechaSeleccionadaDetalle = null;
+  const d = fechaADateLocal(fecha);
+  document.getElementById('detalleTitulo').textContent = `${DIAS_SEMANA[d.getDay()]} ${fecha}`;
+  document.getElementById('detalleEntrada').textContent = esFuturo ? 'Este día aún no ocurre.' : 'No se esperaba marcaje este día.';
+  document.getElementById('detalleSalida').textContent = '';
+  document.getElementById('detalleTurno').textContent = '';
+  document.getElementById('bloqueCorregir').style.display = 'none';
+  document.getElementById('detallePanel').style.display = 'block';
+}
+
+/** Vista "Turnos": resumen y lista del mes en pantalla. */
+function renderTurnos() {
+  const año = fechaVista.getFullYear(), mesIdx = fechaVista.getMonth();
+  document.getElementById('mesLabelTurnos').textContent = `${MESES[mesIdx]} ${año}`;
+
+  const lista = [];
+  turnoInfoMap.forEach((inf, fecha) => {
+    const d = fechaADateLocal(fecha);
+    if (d.getFullYear() === año && d.getMonth() === mesIdx) lista.push({ fecha, d, inf });
+  });
+  lista.sort((a, b) => a.d - b.d);
+
+  let horas = 0, bruto = 0;
+  lista.forEach(x => { const t = tarifaDia(x.d.getDay()); horas += x.inf.horas; bruto += x.inf.horas * t.valor; });
+  const neto = Math.round(bruto * (ajustesTurnos.boleta ? ajustesTurnos.factor : 1));
+  const res = document.getElementById('turnosResumen');
+  res.innerHTML = '';
+  [['TURNOS', String(lista.length), `${horas} h`], [ajustesTurnos.boleta ? 'NETO' : 'BRUTO', fmtCLP(ajustesTurnos.boleta ? neto : bruto), ajustesTurnos.boleta ? `bruto ${fmtCLP(bruto)}` : '']]
+    .forEach(([k, v, s]) => {
+      const div = document.createElement('div');
+      div.innerHTML = '<div class="k"></div><div class="v"></div><div class="s"></div>';
+      div.querySelector('.k').textContent = k; div.querySelector('.v').textContent = v; div.querySelector('.s').textContent = s;
+      res.appendChild(div);
+    });
+
+  const cont = document.getElementById('turnosLista');
+  cont.innerHTML = '';
+  if (!lista.length) cont.innerHTML = '<div class="vacio-txt">Sin turnos este mes.</div>';
+  lista.forEach(x => cont.appendChild(crearItemTurno(x.d, x.inf.centro, x.inf.horas, () => eliminarTurnoUI(x.fecha))));
+
+  // formulario "Agregar turno"
+  const sel = document.getElementById('turnoCentro');
+  const previo = sel.value || ultimoCentro;
+  sel.innerHTML = '';
+  ajustesTurnos.centros.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+  if (previo && ajustesTurnos.centros.indexOf(previo) !== -1) sel.value = previo;
+  const inp = document.getElementById('turnoFecha');
+  if (!inp.value) {
+    const hoy = new Date();
+    inp.value = isoDeDate(hoy.getFullYear() === año && hoy.getMonth() === mesIdx ? hoy : new Date(año, mesIdx, 1));
+  }
+  actualizarInfoTurnoNuevo();
+}
+
+function crearItemTurno(d, centro, horas, alQuitar) {
+  const t = tarifaDia(d.getDay());
+  const item = document.createElement('div');
+  item.className = 'turno-item';
+  item.innerHTML = '<div class="turno-fecha"><b></b><span></span></div><div class="c"><b></b><span></span></div><div class="h"></div>';
+  item.querySelector('.turno-fecha b').textContent = String(d.getDate()).padStart(2, '0');
+  item.querySelector('.turno-fecha span').textContent = DIAS_CORTOS[d.getDay()];
+  item.querySelector('.c b').textContent = centro;
+  item.querySelector('.c b').style.color = colorCentro(centro);
+  item.querySelector('.c span').textContent = fmtCLP(horas * t.valor);
+  item.querySelector('.h').textContent = horas + 'h';
+  if (alQuitar) {
+    const b = document.createElement('button');
+    b.className = 'btn-eliminar'; b.type = 'button'; b.textContent = 'Quitar';
+    b.onclick = alQuitar;
+    item.appendChild(b);
+  }
+  return item;
+}
+
+function actualizarInfoTurnoNuevo() {
+  const iso = document.getElementById('turnoFecha').value;
+  const info = document.getElementById('turnoNuevoInfo');
+  const btn = document.getElementById('btnTurnoNuevo');
+  if (!iso) { info.textContent = ''; btn.disabled = true; return; }
+  const [y, m, d] = iso.split('-').map(Number);
+  const fecha = new Date(y, m - 1, d);
+  const t = tarifaDia(fecha.getDay());
+  if (t.horas === 0) { info.textContent = 'Domingo: no se registran turnos.'; btn.disabled = true; return; }
+  info.textContent = `${DIAS_SEMANA[fecha.getDay()]} · ${t.horas} h · ${fmtCLP(t.total)}`;
+  btn.disabled = false;
+}
+
+async function agregarTurnoUI() {
+  const iso = document.getElementById('turnoFecha').value;
+  const centro = document.getElementById('turnoCentro').value;
+  if (!iso || !centro) return;
+  const [y, m, d] = iso.split('-').map(Number);
+  const fecha = ddmmDeDate(new Date(y, m - 1, d));
+  if (y !== fechaVista.getFullYear() || m - 1 !== fechaVista.getMonth()) { fechaVista = new Date(y, m - 1, 1); }
+  const ok = await guardarTurnoUI(fecha, centro, document.getElementById('btnTurnoNuevo'));
+  if (ok) { document.getElementById('turnoFecha').value = ''; renderTurnos(); }
+}
+
+// ======================================================
+// INGRESOS
+// ======================================================
+let ingresosCache = null; // { turnos: [{f:'YYYY-MM-DD', c, h}], ajustes }
+let ingAnioSel = new Date().getFullYear();
+
+function calcIngresos(regs) {
+  const por = {};
+  let lv = 0, sab = 0;
+  regs.forEach(r => {
+    const [y, m, d] = r.f.split('-').map(Number);
+    const esSab = new Date(y, m - 1, d).getDay() === 6;
+    if (!por[r.c]) por[r.c] = { lv: 0, sab: 0 };
+    if (esSab) { por[r.c].sab += r.h; sab += r.h; } else { por[r.c].lv += r.h; lv += r.h; }
+  });
+  const vLV = lv * ajustesTurnos.valorLV, vSab = sab * ajustesTurnos.valorSab, bruto = vLV + vSab;
+  return { por, lv, sab, vLV, vSab, bruto, neto: Math.round(bruto * (ajustesTurnos.boleta ? ajustesTurnos.factor : 1)) };
+}
+
+async function cargarIngresos(forzar) {
+  const banner = document.getElementById('ingBanner');
+  if (ingresosCache && !forzar) { renderIngresos(); return; }
+  banner.style.display = 'block'; banner.className = 'estado-banner cargando'; banner.textContent = 'Cargando ingresos…';
+  try {
+    const data = await llamarConPin({ accion: 'ingresos' });
+    if (!data.success) throw new Error(data.mensaje || 'No se pudieron cargar los ingresos');
+    ingresosCache = data;
+    if (data.ajustes) ajustesTurnos = data.ajustes;
+    if (data.completo === false) {
+      banner.className = 'estado-banner error';
+      banner.textContent = 'No se pudo leer la planilla de turnos: se muestran solo los meses recientes de la última copia.';
+    } else {
+      banner.style.display = 'none';
+    }
+    renderIngresos();
+  } catch (e) {
+    banner.className = 'estado-banner error';
+    banner.textContent = e.message;
+  }
+}
+
+function cambiarAnioIngresos(delta) {
+  const max = new Date().getFullYear();
+  ingAnioSel = Math.min(max, ingAnioSel + delta);
+  renderIngresos();
+}
+
+function renderIngresos() {
+  if (!ingresosCache) return;
+  const turnos = ingresosCache.turnos || [];
+  const hoy = new Date();
+  const claveHoy = isoDeDate(hoy).slice(0, 7);
+
+  // --- Mes en curso ---
+  const delMes = turnos.filter(t => t.f.startsWith(claveHoy));
+  const s = calcIngresos(delMes);
+  document.getElementById('ingMesNombre').textContent = `${MESES[hoy.getMonth()]} ${hoy.getFullYear()}`;
+  const mes = document.getElementById('ingMes');
+  mes.innerHTML = `<div class="gran-num"><span id="igH"></span><small>h</small></div>
+    <div class="duo"><div><div class="k">LUN–VIE</div><div class="v" id="igLV" ></div><div class="s" id="igVLV"></div></div>
+    <div><div class="k">SÁBADOS</div><div class="v" id="igS" ></div><div class="s" id="igVS"></div></div></div>
+    <div class="linea-total"><span class="k">BRUTO</span><span class="v" id="igB"></span></div>
+    <div class="linea-total" id="igNetoFila" style="border-top:none; padding-top:0; margin-top:6px;"><span class="k" id="igNK"></span><span class="v" id="igN" style="color:var(--ok)"></span></div>`;
+  mes.querySelector('#igH').textContent = s.lv + s.sab;
+  mes.querySelector('#igLV').textContent = s.lv + 'h'; mes.querySelector('#igVLV').textContent = fmtCLP(s.vLV);
+  mes.querySelector('#igS').textContent = s.sab + 'h'; mes.querySelector('#igVS').textContent = fmtCLP(s.vSab);
+  mes.querySelector('#igB').textContent = fmtCLP(s.bruto);
+  mes.querySelector('#igNetoFila').style.display = ajustesTurnos.boleta ? 'flex' : 'none';
+  mes.querySelector('#igNK').textContent = `NETO ×${ajustesTurnos.factor}`;
+  mes.querySelector('#igN').textContent = fmtCLP(s.neto);
+
+  // --- Por centro ---
+  const cen = document.getElementById('ingCentros');
+  cen.innerHTML = '';
+  const nombres = Object.keys(s.por).filter(c => s.por[c].lv + s.por[c].sab > 0);
+  const maxH = Math.max(1, ...nombres.map(c => s.por[c].lv + s.por[c].sab));
+  if (!nombres.length) cen.innerHTML = '<div class="vacio-txt">Sin turnos este mes.</div>';
+  nombres.forEach(c => {
+    const p = s.por[c], tot = p.lv + p.sab, col = colorCentro(c);
+    const div = document.createElement('div');
+    div.className = 'barra-centro';
+    div.innerHTML = '<div class="top"><b></b><span></span></div><div class="riel"><i></i></div>';
+    div.querySelector('b').textContent = c; div.querySelector('b').style.color = col;
+    div.querySelector('span').textContent = `${tot}h · ${fmtCLP(p.lv * ajustesTurnos.valorLV + p.sab * ajustesTurnos.valorSab)}`;
+    div.querySelector('i').style.width = (tot / maxH * 100) + '%'; div.querySelector('i').style.background = col;
+    cen.appendChild(div);
+  });
+
+  // --- Anual ---
+  document.getElementById('ingAnio').textContent = ingAnioSel;
+  const meses = MESES.map((nombre, i) => {
+    const clave = `${ingAnioSel}-${String(i + 1).padStart(2, '0')}`;
+    const regs = turnos.filter(t => t.f.startsWith(clave));
+    return { nombre, clave, regs, st: calcIngresos(regs) };
+  });
+  const maxB = Math.max(1, ...meses.map(m => m.st.bruto));
+  const total = meses.reduce((a, m) => a + m.st.bruto, 0);
+  const conDatos = meses.filter(m => m.regs.length).length;
+  const tot = document.getElementById('ingAnualTotales');
+  tot.innerHTML = '<div><div class="k">TOTAL AÑO</div><div class="v" style="color:var(--accent)"></div></div><div><div class="k">PROMEDIO MES</div><div class="v" style="color:var(--ok)"></div></div>';
+  tot.querySelectorAll('.v')[0].textContent = fmtCLP(total);
+  tot.querySelectorAll('.v')[1].textContent = conDatos ? fmtCLP(Math.round(total / conDatos)) : '—';
+  const anual = document.getElementById('ingAnual');
+  const det = document.getElementById('ingAnualDetalle');
+  anual.innerHTML = '';
+  meses.forEach(m => {
+    const col = document.createElement('div');
+    col.className = 'col' + (m.clave === claveHoy ? ' actual' : '');
+    const barra = document.createElement('i');
+    barra.style.height = (m.st.bruto / maxB * 92) + 'px';
+    const et = document.createElement('span'); et.textContent = m.nombre.slice(0, 3);
+    col.appendChild(barra); col.appendChild(et);
+    col.onclick = () => {
+      anual.querySelectorAll('.col').forEach(c => c.classList.remove('sel'));
+      col.classList.add('sel');
+      det.textContent = m.regs.length
+        ? `${m.nombre}: ${fmtCLP(m.st.bruto)} · ${m.st.lv}h L–V · ${m.st.sab}h Sáb`
+        : `${m.nombre}: sin turnos`;
+    };
+    anual.appendChild(col);
+  });
+  det.textContent = total ? 'Toca un mes para ver su detalle.' : `Sin turnos en ${ingAnioSel}.`;
+
+  // --- Historial ---
+  const hist = document.getElementById('ingHistorial');
+  hist.innerHTML = '';
+  const claves = [...new Set(turnos.map(t => t.f.slice(0, 7)))].sort().reverse();
+  if (!claves.length) hist.innerHTML = '<div class="vacio-txt">Aún no hay turnos registrados.</div>';
+  claves.forEach(clave => {
+    const [y, m] = clave.split('-').map(Number);
+    const regs = turnos.filter(t => t.f.startsWith(clave));
+    const st = calcIngresos(regs);
+    const d = document.createElement('details');
+    d.className = 'mes-hist';
+    const sum = document.createElement('summary');
+    const nom = document.createElement('b'); nom.textContent = `${MESES[m - 1]} ${y}`;
+    const val = document.createElement('span');
+    val.textContent = `${regs.length} días · ${st.lv + st.sab}h · ${fmtCLP(ajustesTurnos.boleta ? st.neto : st.bruto)}`;
+    sum.appendChild(nom); sum.appendChild(val);
+    d.appendChild(sum);
+    const dentro = document.createElement('div');
+    dentro.className = 'dentro';
+    d.appendChild(dentro);
+    d.addEventListener('toggle', () => {
+      if (!d.open || dentro.childElementCount) return;
+      const exp = document.createElement('button');
+      exp.className = 'btn chico'; exp.type = 'button'; exp.textContent = 'Exportar a Excel'; exp.style.marginBottom = '6px';
+      exp.onclick = () => exportarExcel(regs, y, m - 1, exp);
+      dentro.appendChild(exp);
+      regs.forEach(r => {
+        const [yy, mm, dd] = r.f.split('-').map(Number);
+        dentro.appendChild(crearItemTurno(new Date(yy, mm - 1, dd), r.c, r.h, null));
+      });
+    });
+    hist.appendChild(d);
+  });
+}
+
+function cargarSheetJS() {
+  if (window.XLSX) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('No se pudo cargar el generador de Excel (revisa tu conexión).'));
+    document.head.appendChild(s);
+  });
+}
+
+async function exportarExcel(regs, año, mesIdx, btn) {
+  btn.disabled = true;
+  try {
+    await cargarSheetJS();
+    const wb = XLSX.utils.book_new();
+    const filas = [['N°', 'Fecha', 'Día', 'Centro', 'Tipo día', 'Horas', 'Valor hora', 'Total']];
+    regs.forEach((r, i) => {
+      const [y, m, d] = r.f.split('-').map(Number);
+      const fecha = new Date(y, m - 1, d);
+      const t = tarifaDia(fecha.getDay());
+      filas.push([i + 1, `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`, DIAS_SEMANA[fecha.getDay()], r.c, t.esSab ? 'Sábado' : 'Lun–Vie', r.h, t.valor, r.h * t.valor]);
+    });
+    const h1 = XLSX.utils.aoa_to_sheet(filas);
+    h1['!cols'] = [{ wch: 4 }, { wch: 13 }, { wch: 12 }, { wch: 16 }, { wch: 10 }, { wch: 7 }, { wch: 12 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, h1, 'Registros');
+    const st = calcIngresos(regs);
+    const res = [['Centro', 'Horas L–V', 'Horas Sáb', 'Total h', 'Valor L–V', 'Valor Sáb', 'Total $']];
+    Object.keys(st.por).forEach(c => {
+      const p = st.por[c];
+      res.push([c, p.lv, p.sab, p.lv + p.sab, p.lv * ajustesTurnos.valorLV, p.sab * ajustesTurnos.valorSab, p.lv * ajustesTurnos.valorLV + p.sab * ajustesTurnos.valorSab]);
+    });
+    res.push([]);
+    res.push(['TOTAL', st.lv, st.sab, st.lv + st.sab, st.vLV, st.vSab, st.bruto]);
+    if (ajustesTurnos.boleta) res.push([`NETO (×${ajustesTurnos.factor})`, '', '', '', '', '', st.neto]);
+    const h2 = XLSX.utils.aoa_to_sheet(res);
+    h2['!cols'] = [{ wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 13 }, { wch: 13 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, h2, 'Resumen');
+    XLSX.writeFile(wb, `Turnos_${MESES[mesIdx]}_${año}.xlsx`);
+    toast('Excel descargado.', true);
+  } catch (e) {
+    toast(e.message, false);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ======================================================
+// CONFIGURACIÓN → Turnos (tarifas, boleta, centros)
+// ======================================================
+let ajCentrosEdit = [];
+function renderizarAjustesTurnos(a) {
+  if (!a) return;
+  ajustesTurnos = a;
+  document.getElementById('ajValorLV').value = a.valorLV;
+  document.getElementById('ajValorSab').value = a.valorSab;
+  document.getElementById('ajBoleta').checked = !!a.boleta;
+  document.getElementById('ajFactor').value = a.factor;
+  document.getElementById('ajFactorWrap').style.display = a.boleta ? 'block' : 'none';
+  ajCentrosEdit = a.centros.slice();
+  pintarCentrosCfg();
+}
+function pintarCentrosCfg() {
+  const cont = document.getElementById('ajCentros');
+  cont.innerHTML = '';
+  ajCentrosEdit.forEach((c, i) => {
+    const fila = document.createElement('div');
+    fila.className = 'centro-fila';
+    const pt = document.createElement('span'); pt.className = 'pt'; pt.style.background = PALETA_CENTROS[i % PALETA_CENTROS.length];
+    const n = document.createElement('span'); n.className = 'n'; n.textContent = c;
+    const b = document.createElement('button'); b.className = 'btn-eliminar'; b.type = 'button'; b.textContent = 'Quitar';
+    b.disabled = ajCentrosEdit.length <= 1;
+    b.onclick = () => { ajCentrosEdit.splice(i, 1); pintarCentrosCfg(); };
+    fila.appendChild(pt); fila.appendChild(n); fila.appendChild(b);
+    cont.appendChild(fila);
+  });
+}
+function agregarCentroUI() {
+  const inp = document.getElementById('ajNuevoCentro');
+  const nombre = inp.value.trim();
+  if (!nombre || ajCentrosEdit.indexOf(nombre) !== -1) return;
+  ajCentrosEdit.push(nombre);
+  inp.value = '';
+  pintarCentrosCfg();
+}
+async function guardarAjustesTurnosUI(btn) {
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const data = await llamarConPin({
+      accion: 'guardarAjustesTurnos',
+      valorLV: document.getElementById('ajValorLV').value,
+      valorSab: document.getElementById('ajValorSab').value,
+      boleta: document.getElementById('ajBoleta').checked ? 'SI' : 'NO',
+      factor: document.getElementById('ajFactor').value,
+      centros: JSON.stringify(ajCentrosEdit)
+    });
+    bannerCfg(data.success ? 'ok' : 'error', data.mensaje);
+    if (data.success) { renderizarAjustesTurnos(data.ajustes); ingresosCache = null; cfgNecesitaRecarga = true; }
+  } catch (e) {
+    bannerCfg('error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar cambios';
+  }
+}
 
 actualizarCamposSolicitud();
 cargarMes();
