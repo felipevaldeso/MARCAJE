@@ -384,7 +384,7 @@
     </div>
 
     <div class="acciones">
-      <button class="btn" onclick="cargarMes()">Actualizar vista</button>
+      <button class="btn" onclick="cargarMes(true)">Actualizar vista</button>
       <button class="btn primario" id="btnGmail" onclick="actualizarDesdeGmail()">Buscar en Gmail</button>
     </div>
 
@@ -724,28 +724,83 @@ function metaTipo(tipo) {
 
 let cargaMesToken = 0;
 
-async function cargarMes() {
+// Caché de meses en el dispositivo: un mes ya visto (o precargado) se muestra al instante
+// y se actualiza en segundo plano. Cualquier cambio de datos la vacía.
+const cacheMeses = new Map();   // "año-mes" -> { data, ts, completo }
+const mesesEnCamino = new Set();
+let generacionCache = 0;       // sube cada vez que se vacía: descarta respuestas que venían en camino
+function vaciarCacheMeses() { cacheMeses.clear(); generacionCache++; }
+const CACHE_FRESCO_MS = 45000;
+const claveMes = (a, m) => `${a}-${m}`;
+
+function precargarMes(año, mesIdx) {
+  const hoy = new Date();
+  if (año > hoy.getFullYear() || (año === hoy.getFullYear() && mesIdx > hoy.getMonth() + 1)) return;
+  const clave = claveMes(año, mesIdx);
+  if (cacheMeses.has(clave) || mesesEnCamino.has(clave)) return;
+  mesesEnCamino.add(clave);
+  const gen = generacionCache;
+  llamarConPin({ accion: 'datos', anio: año, mes: mesIdx, ligero: 1 })
+    .then(d => { if (d && d.success && gen === generacionCache && !cacheMeses.has(clave)) cacheMeses.set(clave, { data: d, ts: Date.now(), completo: false }); })
+    .catch(() => {})
+    .finally(() => mesesEnCamino.delete(clave));
+}
+
+async function cargarMes(forzar) {
   const miToken = ++cargaMesToken;
   const año = fechaVista.getFullYear();
   const mesIdx = fechaVista.getMonth();
-  const nombreMes = MESES[mesIdx];
+  const clave = claveMes(año, mesIdx);
 
-  document.getElementById('mesLabel').textContent = `${nombreMes} ${año}`;
+  document.getElementById('mesLabel').textContent = `${MESES[mesIdx]} ${año}`;
   const banner = document.getElementById('estadoBanner');
-  banner.className = 'estado-banner cargando';
-  banner.textContent = 'Cargando datos…';
-  document.getElementById('statsRow').style.display = 'none';
-  document.getElementById('calendario').innerHTML = '';
+  const enCache = cacheMeses.get(clave);
+
+  if (enCache) {
+    // Se muestra de inmediato lo que ya se conoce de este mes
+    aplicarDatosMes(enCache.data, año, mesIdx);
+    if (!forzar && enCache.completo && Date.now() - enCache.ts < CACHE_FRESCO_MS) { precargarVecinos(año, mesIdx); return; }
+    banner.className = 'estado-banner cargando';
+    banner.textContent = 'Actualizando…';
+  } else {
+    // Mes nuevo: se dibuja el calendario vacío al instante, sin dejar la pantalla en blanco
+    datosMarcajes = {};
+    feriadosMap = new Map(); especialesMap = new Map(); esperadosSet = new Set();
+    usarEsperados = false;
+    document.getElementById('statsRow').style.display = 'none';
+    renderizarCalendario(año, mesIdx);
+    banner.className = 'estado-banner cargando';
+    banner.textContent = 'Cargando datos…';
+  }
 
   // Una sola consulta protegida trae todo el mes (marcajes, turnos, feriados, permisos, saldos, avisos)
   let data;
+  const gen = generacionCache;
   try {
     data = await llamarConPin({ accion: 'datos', anio: año, mes: mesIdx });
   } catch (e) {
     data = { success: false, mensaje: e.message };
   }
+  if (data && data.success && gen === generacionCache) cacheMeses.set(clave, { data: data, ts: Date.now(), completo: true });
   if (miToken !== cargaMesToken) return;
+  if ((!data || !data.success) && enCache) {
+    banner.className = 'estado-banner error';
+    banner.textContent = 'No se pudo actualizar (' + ((data && data.mensaje) || 'error') + '). Se muestran los últimos datos conocidos.';
+    return;
+  }
+  aplicarDatosMes(data, año, mesIdx);
+  if (data && data.success) precargarVecinos(año, mesIdx);
+}
 
+function precargarVecinos(año, mesIdx) {
+  const ant = new Date(año, mesIdx - 1, 1), sig = new Date(año, mesIdx + 1, 1);
+  precargarMes(ant.getFullYear(), ant.getMonth());
+  precargarMes(sig.getFullYear(), sig.getMonth());
+}
+
+function aplicarDatosMes(data, año, mesIdx) {
+  const nombreMes = MESES[mesIdx];
+  const banner = document.getElementById('estadoBanner');
   if (!data || !data.success) {
     datosMarcajes = {};
     feriadosMap = new Map(); especialesMap = new Map(); esperadosSet = new Set();
@@ -798,9 +853,9 @@ async function cargarMes() {
 
   renderizarCalendario(año, mesIdx);
   renderizarStats(año, mesIdx);
-  cargarSaldos(año, data.saldos);
-  cargarListaSolicitudes(data.solicitudes);
-  cargarAvisos(data.avisos);
+  if (data.saldos) cargarSaldos(año, data.saldos);
+  if (data.solicitudes) cargarListaSolicitudes(data.solicitudes);
+  if (data.avisos) cargarAvisos(data.avisos);
   renderTurnos();
 }
 
@@ -1381,10 +1436,15 @@ function obtenerSesion() {
 }
 
 /** Llama al Web App con la sesión del dispositivo; si ya no es válida, pide el PIN y reintenta una vez. */
+const ACCIONES_LECTURA = ['datos', 'mes', 'saldos', 'listarSolicitudes', 'avisos', 'config', 'ingresos', 'verificarPin'];
+
 async function llamarConPin(params) {
   const p = params instanceof URLSearchParams ? params : new URLSearchParams(params);
   p.set('t', await obtenerSesion());
+  // Toda acción que cambia datos vacía la caché de meses
+  if (ACCIONES_LECTURA.indexOf(p.get('accion')) === -1) vaciarCacheMeses();
   let data = await llamarWebAppJSONP(`${WEB_APP_URL}?${p.toString()}`);
+  if (ACCIONES_LECTURA.indexOf(p.get('accion')) === -1) vaciarCacheMeses();
   if (data && data.accesoInvalido) {
     borrarSesion();
     p.set('t', await obtenerSesion());
