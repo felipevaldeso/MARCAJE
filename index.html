@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0d0e12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-  /* Tema oscuro sobrio (v5.1): grises neutros, tipografía del sistema y un solo color de acento */
+  /* Tema oscuro sobrio (v5.2): grises neutros, tipografía del sistema y un solo color de acento */
   :root {
     --bg: #000000;
     --surface: #1c1c1e;
@@ -149,6 +149,12 @@
   .ticket { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
   .ticket.verde { background: var(--ok); } .ticket.rojo { background: var(--bad); }
   .ticket.amarillo { background: var(--warn); } .ticket.gris { background: var(--off); }
+  .ticket.espera { background: transparent; box-shadow: inset 0 0 0 1px var(--text-2); }
+  /* iPhone: los campos de fecha y hora no deben salirse de su recuadro */
+  input[type=date], input[type=time] { -webkit-appearance:none; appearance:none; min-width:0; max-width:100%; box-sizing:border-box; }
+  input[type=date]::-webkit-date-and-time-value, input[type=time]::-webkit-date-and-time-value { text-align:left; min-height:1.2em; }
+  .form-fila > *, .cfg-campo { min-width:0; }
+  .form-campo, .cfg-campo { overflow:hidden; }
   .estrella { position:absolute; top:3px; right:5px; font-size:.54em; font-weight:700; color: currentColor; opacity:.85; }
   .estrella.turno { color: var(--turno); opacity:1; }
   .badge-medio { position:absolute; top:3px; left:5px; font-size:.54em; font-weight:700; color: var(--warn); }
@@ -428,7 +434,11 @@
               <input type="time" id="corHoraValor">
             </label>
           </div>
-          <button type="button" class="btn primario" style="margin-top:10px;" onclick="enviarCorreccionMarcaje()" id="btnCorregir">Guardar corrección</button>
+          <div class="aviso-acciones" style="margin-top:10px;">
+            <button type="button" class="btn primario" onclick="enviarCorreccionMarcaje()" id="btnCorregir">Guardar corrección</button>
+            <button type="button" class="btn" onclick="enviarCorreccionMarcaje(true)" id="btnQuitarMarcaje">Quitar</button>
+          </div>
+          <div class="turno-info" style="margin:8px 0 0;">La hora que guardes queda marcada como corrección manual. «Quitar» borra ese marcaje o deshace tu corrección.</div>
         </div>
       </div>
     </div>
@@ -438,6 +448,7 @@
       <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket verde"></div></div><span>Entrada y salida registradas</span></div>
       <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket rojo"></div></div><span>Falta un marcaje (entrada · salida)</span></div>
       <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket rojo"></div><div class="ticket rojo"></div></div><span>Sin marcaje</span></div>
+      <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket espera"></div></div><span>Hoy: ese marcaje aún no corresponde</span></div>
       <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket amarillo"></div></div><span>Medio día libre: no cuenta como falta</span></div>
       <div class="leyenda-item"><div class="leyenda-tickets"><div class="ticket verde"></div><div class="ticket gris"></div></div><span>Marcaje en día libre (informativo)</span></div>
       <div class="leyenda-item"><span class="sigla turno">T</span><span>Turno (color según el centro)</span></div>
@@ -820,6 +831,7 @@ function aplicarDatosMes(data, año, mesIdx) {
     const inf = turnoInfoMap.get(fecha);
     datosLocal[fecha] = {
       entrada: !!m.he, salida: !!m.hs, horaEntrada: m.he || '', horaSalida: m.hs || '',
+      manualEntrada: !!m.me, manualSalida: !!m.ms, relojEntrada: m.re || '', relojSalida: m.rs || '', otros: m.otros || [],
       turno: !!inf, tipoTurno: etiquetaTurno(inf), horasTurno: inf ? inf.horas : ''
     };
   });
@@ -835,6 +847,7 @@ function aplicarDatosMes(data, año, mesIdx) {
   feriadosMap = new Map(Object.entries(data.feriados || {}));
   especialesMap = new Map(Object.entries(data.especiales || {}));
   esperadosSet = new Set(data.esperados || []);
+  if (data.horarioHoy !== undefined) horarioHoy = data.horarioHoy;
 
   const hoy = new Date();
   const esMesActual = hoy.getFullYear() === año && hoy.getMonth() === mesIdx;
@@ -859,13 +872,25 @@ function aplicarDatosMes(data, año, mesIdx) {
   renderTurnos();
 }
 
-function crearTickets(info, colorFaltante) {
+// Horario de hoy que entrega el servidor: { fecha, entrada, salida, margen }
+let horarioHoy = null;
+
+/** ¿Ese marcaje de HOY todavía no corresponde? (no ha pasado la hora esperada + margen) */
+function aunNoCorresponde(fecha, tipo) {
+  if (!horarioHoy || horarioHoy.fecha !== fecha || !horarioHoy[tipo]) return false;
+  const [hh, mm] = horarioHoy[tipo].split(':').map(Number);
+  const ahora = new Date();
+  return ahora.getHours() * 60 + ahora.getMinutes() < hh * 60 + mm + (horarioHoy.margen || 0);
+}
+
+function crearTickets(info, colorFaltante, fecha) {
   const tickets = document.createElement('div');
   tickets.className = 'tickets';
+  const color = (tiene, tipo) => tiene ? 'verde' : (fecha && aunNoCorresponde(fecha, tipo) ? 'espera' : colorFaltante);
   const t1 = document.createElement('div');
-  t1.className = 'ticket ' + (info.entrada ? 'verde' : colorFaltante);
+  t1.className = 'ticket ' + color(info.entrada, 'entrada');
   const t2 = document.createElement('div');
-  t2.className = 'ticket ' + (info.salida ? 'verde' : colorFaltante);
+  t2.className = 'ticket ' + color(info.salida, 'salida');
   tickets.appendChild(t1); tickets.appendChild(t2);
   return tickets;
 }
@@ -945,7 +970,7 @@ function renderizarCalendario(año, mesIdx) {
       if (esperado || tieneMarcaje || conTurno) {
         const infoDia = info || { entrada: false, salida: false, turno: false, tipoTurno: '', horasTurno: '', horaEntrada: '', horaSalida: '' };
         const esMedio = !!(especial && especial.medioDia);
-        div.appendChild(crearTickets(infoDia, esMedio ? 'amarillo' : 'rojo'));
+        div.appendChild(crearTickets(infoDia, esMedio ? 'amarillo' : 'rojo', fechaStr));
         if (conTurno) agregarMarca(div, 'T', colorTurnoDe(fechaStr));
         if (esMedio) { div.classList.add('medio-dia'); agregarBadgeMedio(div); }
         div.onclick = () => mostrarDetalle(fechaStr, infoDia, especial);
@@ -982,16 +1007,25 @@ function renderizarStats(año, mesIdx) {
 
     if (info && info.turno) turnos++;
 
-    // Días libres o con permiso: todo el mes (feriados solo si caen lunes a viernes)
-    if (especial || (esFeriado && diaSemana >= 1 && diaSemana <= 5)) { libres++; continue; }
+    // Días libres: permisos de día completo y feriados, solo si caen de lunes a viernes
+    // (un fin de semana dentro de las vacaciones no es un día libre adicional)
+    const libreCompleto = (especial && !especial.medioDia) || esFeriado;
+    if (libreCompleto) { if (diaSemana >= 1 && diaSemana <= 5) libres++; continue; }
     if (esFuturo) continue;
 
     const tieneMarcaje = !!(info && (info.entrada || info.salida));
     const esperado = usarEsperados && esperadosSet.has(fecha);
     if (!esperado && !tieneMarcaje && !(info && info.turno)) continue;
 
-    if (info && info.entrada && info.salida) completo++;
-    else if (tieneMarcaje) parcial++;
+    const tieneE = !!(info && info.entrada), tieneS = !!(info && info.salida);
+    if (tieneE && tieneS) { completo++; continue; }
+    // Medio día libre: lo que falte está cubierto por el permiso, no es falta
+    if (especial && especial.medioDia) { if (tieneMarcaje) completo++; continue; }
+    // Hoy: un marcaje que todavía no corresponde no cuenta como falta
+    const faltaE = !tieneE && !aunNoCorresponde(fecha, 'entrada');
+    const faltaS = !tieneS && !aunNoCorresponde(fecha, 'salida');
+    if (!faltaE && !faltaS) continue;
+    if (tieneMarcaje) parcial++;
     else faltante++;
   }
 
@@ -1005,8 +1039,15 @@ function renderizarStats(año, mesIdx) {
 
 let fechaSeleccionadaDetalle = null;
 
-function textoMarcaje(registrado, hora, colorFaltante) {
-  if (registrado) return `registrada${hora ? ' a las ' + hora : ''}`;
+function textoMarcaje(registrado, hora, colorFaltante, fecha, tipo, info) {
+  if (registrado) {
+    let txt = `registrada${hora ? ' a las ' + hora : ''}`;
+    const manual = info && (tipo === 'entrada' ? info.manualEntrada : info.manualSalida);
+    const reloj = info && (tipo === 'entrada' ? info.relojEntrada : info.relojSalida);
+    if (manual) txt += reloj ? ` · corregida a mano (el reloj registró ${reloj})` : ' · corregida a mano';
+    return txt;
+  }
+  if (fecha && aunNoCorresponde(fecha, tipo)) return `aún no corresponde (se espera a las ${horarioHoy[tipo]})`;
   return colorFaltante === 'amarillo' ? 'sin marcaje (cubierto por el medio día libre)' : 'faltante';
 }
 
@@ -1020,8 +1061,8 @@ function mostrarDetalle(fecha, info, especial) {
   const colorFaltante = esMedio ? 'amarillo' : 'rojo';
 
   document.getElementById('detalleTitulo').textContent = `${nombreDia} ${fecha}`;
-  document.getElementById('detalleEntrada').textContent = `Entrada: ${textoMarcaje(info.entrada, info.horaEntrada, colorFaltante)}`;
-  document.getElementById('detalleSalida').textContent = `Salida: ${textoMarcaje(info.salida, info.horaSalida, colorFaltante)}`;
+  document.getElementById('detalleEntrada').textContent = `Entrada: ${textoMarcaje(info.entrada, info.horaEntrada, colorFaltante, fecha, 'entrada', info)}`;
+  document.getElementById('detalleSalida').textContent = `Salida: ${textoMarcaje(info.salida, info.horaSalida, colorFaltante, fecha, 'salida', info)}`;
 
   let textoTurno;
   if (info.tipoTurno) {
@@ -1033,6 +1074,9 @@ function mostrarDetalle(fecha, info, especial) {
   }
   if (esMedio) {
     textoTurno += ` · ${especial.tipo} — ${especial.fraccion}${especial.notas ? ' (' + especial.notas + ')' : ''}`;
+  }
+  if (info.otros && info.otros.length) {
+    textoTurno += ` · Otros marcajes del día: ${info.otros.map(o => o.tipo + ' ' + o.hora).join(', ')}`;
   }
   document.getElementById('detalleTurno').textContent = textoTurno;
 
@@ -1061,31 +1105,33 @@ function mostrarFormularioCorregir() {
   document.getElementById('formCorregirWrap').style.display = 'block';
 }
 
-async function enviarCorreccionMarcaje() {
+async function enviarCorreccionMarcaje(quitar) {
   if (!fechaSeleccionadaDetalle) return;
   const tipo = document.getElementById('corHoraTipo').value;
   const hora = document.getElementById('corHoraValor').value;
-  if (!hora) { alert('Ingresa una hora.'); return; }
+  if (!quitar && !hora) { toast('Ingresa una hora.', false); return; }
+  if (quitar && !confirm(`¿Quitar la ${tipo} del ${fechaSeleccionadaDetalle}?`)) return;
 
-  const btn = document.getElementById('btnCorregir');
+  const btn = document.getElementById(quitar ? 'btnQuitarMarcaje' : 'btnCorregir');
+  const textoBtn = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Guardando…';
 
   try {
-    const params = new URLSearchParams({ accion: 'corregirMarcaje', fecha: fechaSeleccionadaDetalle, tipo, hora });
+    const params = new URLSearchParams({ accion: 'corregirMarcaje', fecha: fechaSeleccionadaDetalle, tipo });
+    if (quitar) params.set('quitar', '1'); else params.set('hora', hora);
     const data = await llamarConPin(params);
+    toast(data.mensaje || (data.success ? 'Listo.' : 'No se pudo guardar la corrección'), !!data.success);
     if (data.success) {
-      alert(data.mensaje);
       document.getElementById('formCorregirWrap').style.display = 'none';
-      await cargarMes();
-    } else {
-      alert(data.mensaje || 'No se pudo guardar la corrección');
+      cerrarDetalle();
+      await cargarMes(true);
     }
   } catch (e) {
-    alert(e.message);
+    toast(e.message, false);
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Guardar corrección';
+    btn.textContent = textoBtn;
   }
 }
 
